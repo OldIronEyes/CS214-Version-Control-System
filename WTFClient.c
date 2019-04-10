@@ -1,6 +1,5 @@
 #include "WTF.h"
 
-
 /*
  * Client should attempt to connect every three 
  * seconds until successful or interrupted by SIGINT
@@ -12,12 +11,16 @@ int connect(char* IPAddress, int portNumber){
 }
 
 /*
- * Should write/update the .Manifest file to update the
+ * Should write/update the .config file to update the
  * connection variables as necessary, and update the global
  * variables defined in WTF.h
  */
 
 void configure(char* newIP, int newPort){
+
+}
+
+void writeManifest(){
 
 }
 
