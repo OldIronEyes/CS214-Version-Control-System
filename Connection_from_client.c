@@ -87,7 +87,7 @@ void configure ( char* IPAddress, char* port ){
 	// writes into the file 
 	int removed = remove( ".configure");
 	int port_Number = strtol(port, NULL, 10);
-	if( port_Number<8000 || port_Number>63999){
+	if( port_Number<8000 || port_Number>64000){
 		fprintf(stderr, "This is not a valid port number please enter another. Must be greater than 8K and less than 64k\nEnded\n");
 		exit(0);
 	}
@@ -153,13 +153,14 @@ void main_configure (char * ip, char * ports){
 
 int main (int argc, char ** argv){
 
+
+// ----------------------------------------ALL THE VARIABLES THAT WE USE ARE GOING HERE----------------------------
+	int server;
 	if (argc < 3 ){
 		printf("you must put in a valid argument\n");
 		exit(0);
 	}
-	node * LL;
-	int server;
- 	
+	
 	if (strcmp(argv[1],"configure")==0){
 		if (argc<4){
 			printf("you need to put a valid host name and a port number to connect to\n");
@@ -168,7 +169,10 @@ int main (int argc, char ** argv){
 		main_configure(argv[2], argv[3]);
 		printf("This is the ipaddres: %s\n", IP);
 		printf("this is the port number we are working on: %d\n", port);
+		return 0;
 	 }
+
+
     server = connect_server(IP,port);
 	char * word = "hello what is up my dudes asdfasdfoaisbfpaisub asfbnai basofbasipdfuias ds ";
 	write(server, word, strlen(word));
