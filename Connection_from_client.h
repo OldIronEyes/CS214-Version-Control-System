@@ -21,7 +21,7 @@ void error(const char *msg);
 
 int connect_to_server(char* IPAddress, int port);
 
-node *  tokenize();
+void tokenize();
 
 void configue ( char* IPAddress, char* port );
 

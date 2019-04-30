@@ -14,6 +14,9 @@
 #include "Connection_from_client.h"
 
 
+char * IP;
+int port;
+
 
 void error(const char *msg)
 {
@@ -97,7 +100,9 @@ void configure ( char* IPAddress, char* port ){
 
 }
 
-node * tokenize(){
+
+
+void tokenize(){
 
 	// tokenizes it so that it can get the name and the port 
 	int file = open(".configure" ,O_RDONLY, 0644);
@@ -135,7 +140,8 @@ node * tokenize(){
 		i++;
 	}
 	close(file);
-	return head;
+	IP = head->data;
+	port= atoi(head->next->data);
 }
 
 
@@ -155,9 +161,11 @@ int main (int argc, char ** argv){
 			exit(0);
 		}
 		configure(argv[2],argv[3]);
-		LL= tokenize();
+		tokenize();
+		printf("%s\n", IP);
+		printf("%d\n", port);
 	 }
-    server = connect_server(argv[2], argv[3]);
+    server = connect_server(IP,port);
 	printf("%d\n", server);
 	write(server, "coins", 6);
 	return 0;
