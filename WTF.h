@@ -1,33 +1,38 @@
-/* Client to do list:
- 1. writeManifest
- 2. currentVersion
- 3. history
- 4. Diagram Update/Upgrade/Commit/Push
- */
+#ifndef Test_H
+#define Test_H
 
-/* Server to do list:
- 1. Single threaded ping/response
- 2. Single threaded file read
- 3. Single threaded file write
- 4. Single threaded file send
- 5. Multi threaded file response
- */
-
-#ifndef WTF_H
-#define WTF_H
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <openssl/sha.h>
+#include <sys/stat.h>
+#include <math.h>
 
-/*
- * These are the default IP Address/Port that will be used. If a .config file exists
- * then they will be overwritten as necessary.
- */
- 
-//char* IPAddress = ;
-//char* portNumber = ;
+int MANIFEST_ENTRIES;
+
+static int newFlag = O_WRONLY | O_CREAT;
+static int readFlag = O_RDONLY;
+static int addFlag = O_RDWR | O_APPEND;
+static int remFlag = O_RDWR | O_TRUNC;
+static mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+
+typedef struct _manEntry {
+	int verNum;
+	char* name;
+	char* hash;
+	char* text;
+} manEntry;
+
+char* generateHash(char* input);
+manEntry* newManEntry(char* fileName);
+manEntry* extractEntry(char* rawText, int trailer);
+manEntry** readManifest(char* projectName);
+
+void createProject(char* projectName);
+void addFile(char* projectName, char* fileName);
+void removeFile(char* projectName, char* fileName);
+void destroyProject(char* projectName);
 
 #endif
