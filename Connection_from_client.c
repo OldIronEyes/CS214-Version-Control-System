@@ -24,14 +24,14 @@ void error(const char *msg)
     exit(0);
 }
 
-int connect_server (char * Ip, char *  port){
+int connect_server (char * Ip, int port){
 	int sockfd, portno, n, status, message_size, sent_size, total_size;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
 	char recv_buffer[1024], send_buffer[1024], *tmp;
 
-	portno = atoi(port);
+	portno = port;
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) 
         error("ERROR opening socket");
