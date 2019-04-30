@@ -145,6 +145,11 @@ void tokenize(){
 }
 
 
+void main_configure (char * ip, char * ports){
+		
+		configure(ip,ports);
+		tokenize();
+}
 
 int main (int argc, char ** argv){
 
@@ -160,14 +165,13 @@ int main (int argc, char ** argv){
 			printf("you need to put a valid host name and a port number to connect to\n");
 			exit(0);
 		}
-		configure(argv[2],argv[3]);
-		tokenize();
-		printf("%s\n", IP);
-		printf("%d\n", port);
+		main_configure(argv[2], argv[3]);
+		printf("This is the ipaddres: %s\n", IP);
+		printf("this is the port number we are working on: %d\n", port);
 	 }
     server = connect_server(IP,port);
-	printf("%d\n", server);
-	write(server, "coins", 6);
+	char * word = "hello what is up my dudes asdfasdfoaisbfpaisub asfbnai basofbasipdfuias ds ";
+	write(server, word, strlen(word));
 	return 0;
 }
 
