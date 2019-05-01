@@ -71,6 +71,6 @@ int main(int argc, char* argv[]){
 	}
 
 	else {
-		printf("Invalid Comand");
+		printf("Invalid Command");
 	}
 }
