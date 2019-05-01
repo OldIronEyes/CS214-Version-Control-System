@@ -19,7 +19,7 @@ typedef struct node{
 
 int connect_server (char * Ip, char *  port);
 
-node *  tokenize();
+void tokenize();
 
 void configue ( char* IPAddress, char* port );
 

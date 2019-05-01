@@ -96,7 +96,7 @@ void configure ( char* IPAddress, char* port ){
 
 }
 
-node * tokenize(){
+void tokenize(){
 
 	// tokenizes it so that it can get the name and the port 
 	int file = open(".configure" ,O_RDONLY, 0644);
@@ -134,7 +134,9 @@ node * tokenize(){
 		i++;
 	}
 	close(file);
-	return head;
+	IP = head->data;
+	PORT= atoi(head->next->data);
+	
 }
 
 
@@ -154,7 +156,7 @@ node * tokenize(){
 // 			exit(0);
 // 		}
 // 		configure(argv[2],argv[3]);
-// 		LL= tokenize();
+// 		tokenize();
 // 	 }
 //     server = connect_server(argv[2], argv[3]);
 // 	printf("%d\n", server);

@@ -11,6 +11,8 @@
 #include <math.h>
 
 int MANIFEST_ENTRIES;
+char * IP;
+int PORT;
 
 static int newFlag = O_WRONLY | O_CREAT;
 static int readFlag = O_RDONLY;
