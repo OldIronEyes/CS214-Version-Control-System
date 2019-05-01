@@ -141,28 +141,28 @@ void tokenize(){
 
 
 
-// int main (int argc, char ** argv){
+int main (int argc, char ** argv){
 
-// 	if (argc < 3 ){
-// 		printf("you must put in a valid argument\n");
-// 		exit(0);
-// 	}
-// 	node * LL;
-// 	int server;
+	if (argc < 3 ){
+		printf("you must put in a valid argument\n");
+		exit(0);
+	}
+	node * LL;
+	int server;
  	
-// 	if (strcmp(argv[1],"configure")==0){
-// 		if (argc<4){
-// 			printf("you need to put a valid host name and a port number to connect to\n");
-// 			exit(0);
-// 		}
-// 		configure(argv[2],argv[3]);
-// 		tokenize();
-// 	 }
-//     server = connect_server(argv[2], argv[3]);
-// 	printf("%d\n", server);
-// 	write(server, "coins", 6);
-// 	return 0;
-// }
+	if (strcmp(argv[1],"configure")==0){
+		if (argc<4){
+			printf("you need to put a valid host name and a port number to connect to\n");
+			exit(0);
+		}
+		configure(argv[2],argv[3]);
+		tokenize();
+	 }
+    server = connect_server(argv[2], argv[3]);
+	printf("%d\n", server);
+	write(server, "coins", 6);
+	return 0;
+}
 
 
 
