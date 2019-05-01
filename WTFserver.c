@@ -36,6 +36,10 @@ void* func(void *vargp)
 
 int main(int argc, char *argv[])
 {
+	if (atoi(argv[1])<8000 || atoi(argv[1])>64000){
+		printf("PORT must be between 8k adn 64k\n");
+		return 0;
+	}
     int sockfd, newsockfd, portno;
     socklen_t clilen_addr_size;
     struct sockaddr_in serv_addr, cli_addr;
