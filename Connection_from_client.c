@@ -11,6 +11,7 @@
 #include <errno.h>
 
 #include "WTF.h"
+#include "Connection_from_client.h"
 
 
 void error(const char *msg)
