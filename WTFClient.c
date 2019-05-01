@@ -7,20 +7,69 @@ int main(int argc, char* argv[]){
 		printf("please input a proper amount of arguments\n");
 		return 0;
 	}
-	int command_buffer= strlen(argv[1])+1;
-
-
+	int command_buffer = strlen(argv[1]);
 //	CONFIGURE %100 WORKS----------------- DO NOT TOUCH-------------------------
 	if(strcmp(argv[1], "configure") == 0){
 		if (argc<4){
 			printf("you need to input an IP address and a port\n");
 			exit(0);
 		}
-		configure(argv[2],argv[3]);
-		tokenize();
+			configure(argv[2],argv[3]);
+			tokenize();
+		}
+		else if (strcmp(argv[1],"push") == 0){
+		printf("push");
+		int file = open(argv[2],O_RDONLY, 0644);
+		int length = lseek(file,0,SEEK_END)+ 1;
+		lseek(file,0, SEEK_SET);
+
+		char * contents = malloc(length*sizeof(char));
+		read(file,contents,length);
+
+		int server = connect_server(IP,PORT);
+		write(server,argv[2],command_buffer);
+
+		int project_name = strlen(argv[2])+1;
+		write(server, project_name,sizeof(int));
+		write(server,argv[2],project_name);
+		write(server, length, sizeof(int));
+		write(server,contents, length);
+		close(file);
+
+
+
 	}
-	int server= connect_server(IP,PORT);
-	write(server,argv[1],command_buffer);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// else if (strcmp(argv[1],"create") == 0){
 	// 	if(argc != 2){
@@ -70,9 +119,7 @@ int main(int argc, char* argv[]){
 	// 	printf("commit");
 	// }
 
-	// else if (strcmp(argv[1],"push") == 0){
-	// 	printf("push");
-	// }
+
 
 	// else if (strcmp(argv[1],"currentversion") == 0){
 	// 	printf("current version");

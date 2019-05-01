@@ -18,7 +18,8 @@
 // }
 
 
-void the_input_command(char * buffer){
+void the_input_command(char * buffer, void *vargp){
+    int* fd = (int*)vargp;
 
     if (strcmp(buffer,"create")==0){
         
@@ -37,7 +38,20 @@ void the_input_command(char * buffer){
 
     }
     else if (strcmp(buffer,"push")==0){
+        int buffer;
+        read(*fd,&buffer,sizeof(int));
+        char * file_name = malloc(buffer*sizeof(char)+1);
+        read(*fd,file_name,buffer);
+        read(*fd,&buffer,sizeof(int));
+        char * actual_file = malloc(buffer*sizeof(char)+1);
+        read(*fd, actual_file, buffer);
+        
+        //open a file with the name gotten and then write to it all the things that were in teh file 
+        int new_file = open(file_name, O_CREAT | O_RDWR, 0644);
+        write(new_file,actual_file,buffer);
+        close(new_file);
 
+        
     }
     else if (strcmp(buffer,"currenversion")==0){
 
