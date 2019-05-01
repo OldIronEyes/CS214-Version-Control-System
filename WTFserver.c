@@ -9,13 +9,13 @@
 #include <unistd.h>
 
 
-char *  get_file_info(FILE *fd){
-    int file = open(fd,O_RDONLY, 0644);
-	int filesize = lseek(file,0,SEEK_END);
-    read(fd,&filesize,4);
-    char * filename = malloc((filesize)*sizeof(char);
-    return filename;
-}
+// char *  get_file_info(FILE *fd){
+//     int file = open(fd,O_RDONLY, 0644);
+// 	int filesize = lseek(file,0,SEEK_END);
+//     read(fd,&filesize,4);
+//     char * filename = malloc((filesize)*sizeof(char));
+//     return filename;
+// }
 
 
 void the_input_command(char * buffer){
@@ -80,12 +80,11 @@ void* func(void *vargp, FILE *file)
        // void * file_buffer= get_buffer(file);
        // double check with the vqlue of 0
         if (read(*fd, command_buffer, 255) >= 0)
-        {
+        {   
+            if (strcmp(command_buffer,"add")==0){
+                printf("got here\n");
+            }
             
-
-            perror("read");
-            close(*fd);
-            return NULL;
         }
         return 0;
         //if (strcmp(buffer, "done") == 0)

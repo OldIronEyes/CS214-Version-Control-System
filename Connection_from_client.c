@@ -162,7 +162,9 @@ int main (int argc, char ** argv){
     server = connect_server(argv[2], argv[3]);
 	//printf("%d\n", server);
 	
-	write(server, "coins", 6);
+	char * word = "add";
+
+	write(server, word, 4);
 	return 0;
 }
 

@@ -3,6 +3,11 @@
 
 int main(int argc, char* argv[]){
 
+	if (argc<3){
+		printf("please input a proper amount of arguments\n");
+		return 0;
+	}
+
 	if(strcmp(argv[1], "configure") == 0){
 		printf("configure");
 
