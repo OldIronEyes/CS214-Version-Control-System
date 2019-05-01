@@ -159,7 +159,7 @@ int main (int argc, char ** argv){
 		tokenize();
 	 }
     server = connect_server(argv[2], argv[3]);
-	printf("%d\n", server);
+	//printf("%d\n", server);
 	write(server, "coins", 6);
 	return 0;
 }
