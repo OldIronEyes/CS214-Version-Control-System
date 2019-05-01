@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 void error(const char *msg)
 {
@@ -12,22 +14,35 @@ void error(const char *msg)
     exit(0);
 }
 
-void* func(void *vargp)
+
+void * get_buffer( FILE * fp){
+    int file = open(".configure" ,O_RDONLY, 0644);
+	int length = lseek(file,0,SEEK_END);
+	// lseek(file,0, SEEK_SET);
+}
+
+void* func(void *vargp, FILE *file)
 {
     int* fd = (int*)vargp;
-    char buffer[256];
+    char command_buffer[256];
+    int size_buffer[1];
+    char * file_buffer;
     printf("new connection\n");
+    // this is the loop that is infinite and it always listening to a client reception 
     while (1)
     {
-        if (read(*fd, buffer, 255) < 0)
+       // void * file_buffer= get_buffer(file);
+       // double check with the vqlue of 0
+        if (read(*fd, command_buffer, 255) >= 0)
         {
+            
             perror("read");
             close(*fd);
             return NULL;
         }
-        printf("receive message:%s\n", buffer);
+      //  printf("receive message:%s\n", buffer);
         return 0;
-        if (strcmp(buffer, "done") == 0)
+        //if (strcmp(buffer, "done") == 0)
             break;
     }
     close(*fd);

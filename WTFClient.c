@@ -1,9 +1,11 @@
 #include "WTF.h"
+#include "Connection_from_client.h"
 
 int main(int argc, char* argv[]){
 
 	if(strcmp(argv[1], "configure") == 0){
 		printf("configure");
+
 	}
 
 	else if (strcmp(argv[1],"create") == 0){

@@ -103,6 +103,7 @@ void tokenize(){
 	int length = lseek(file,0,SEEK_END);
 
 	lseek(file,0, SEEK_SET);
+	printf("%d\n", length);
 	char * contents = malloc((length)*sizeof(char));
 	int size_of_LL;
 	node * ptr= NULL;
