@@ -17,7 +17,7 @@ typedef struct node{
 } node;
 
 
-int connect_server (char * Ip, char *  port);
+int connect_server (char * Ip, int port);
 
 void tokenize();
 
