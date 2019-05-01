@@ -8,6 +8,53 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
+char *  get_file_info(FILE *fd){
+    int file = open(fd,O_RDONLY, 0644);
+	int filesize = lseek(file,0,SEEK_END);
+    read(fd,&filesize,4);
+    char * filename = malloc((filesize)*sizeof(char);
+    return filename;
+}
+
+
+void the_input_command(char * buffer){
+
+    if (strcmp(buffer,"create")==0){
+        
+
+    }
+    else if (strcmp(buffer,"checkout")==0){
+
+    }
+    else if (strcmp(buffer,"update")==0){
+
+    }
+    else if (strcmp(buffer,"upgrade")==0){
+
+    }
+    else if (strcmp(buffer,"commit")==0){
+
+    }
+    else if (strcmp(buffer,"push")==0){
+
+    }
+    else if (strcmp(buffer,"currenversion")==0){
+
+    }
+    else if (strcmp(buffer,"history")==0){
+
+    }
+    else if (strcmp(buffer,"rollback")==0){
+
+    }
+
+
+
+
+}
+
+
 void error(const char *msg)
 {
     perror(msg);
@@ -25,8 +72,7 @@ void* func(void *vargp, FILE *file)
 {
     int* fd = (int*)vargp;
     char command_buffer[256];
-    int size_buffer[1];
-    char * file_buffer;
+
     printf("new connection\n");
     // this is the loop that is infinite and it always listening to a client reception 
     while (1)
@@ -36,11 +82,11 @@ void* func(void *vargp, FILE *file)
         if (read(*fd, command_buffer, 255) >= 0)
         {
             
+
             perror("read");
             close(*fd);
             return NULL;
         }
-      //  printf("receive message:%s\n", buffer);
         return 0;
         //if (strcmp(buffer, "done") == 0)
             break;
