@@ -1,6 +1,14 @@
 #include "WTF.h"
 
-char* generateHash(char* input){
+char* parseManifestName(char* projectName){
+	char* manifestName = malloc((strlen(projectName)+10)*sizeof(char));
+	memset(manifestName, 0x0, (strlen(projectName)+10));
+	strncpy(manifestName, projectName, strlen(projectName));
+	strncat(manifestName, ".manifest", 10);
+	return manifestName;
+}
+
+char* generateHash(char* inputText){
 	int i;
 	char temp[SHA_DIGEST_LENGTH];
 	char* buff = malloc((SHA_DIGEST_LENGTH*2)*sizeof(char));
@@ -8,7 +16,7 @@ char* generateHash(char* input){
 	memset(temp, 0x0, SHA_DIGEST_LENGTH);
 	memset(buff, 0x0, SHA_DIGEST_LENGTH*2);
 	
-	SHA1((const char *)input, (unsigned long)strlen(input), temp);
+	SHA1((const char *)inputText, (unsigned long)strlen(inputText), temp);
 	
 	for(i = 0; i <SHA_DIGEST_LENGTH; i++){
 		sprintf((char*)&(buff[i*2]), "%02x", temp[i]);
@@ -22,7 +30,8 @@ manEntry* newManEntry(char* fileName){
 	
 	manEntry* project = malloc(sizeof(manEntry));
 	project->verNum = 1;
-	project->name = fileName;
+	project->name = malloc(strlen(fileName)*sizeof(char)+1);
+	strncpy(project->name, fileName, strlen(fileName));
 	
 	int nLen = floor(log10(project->verNum))+1;
 	
@@ -33,6 +42,8 @@ manEntry* newManEntry(char* fileName){
 	
 	project->hash = generateHash(fileText);
 	free(fileText);
+	
+	project->text = malloc(nLen+strlen(project->name)+25);
 	
 	sprintf(project->text, "%d,%s,%s\n", project->verNum,project->name,project->hash);
 	return project;
