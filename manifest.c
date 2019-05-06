@@ -64,16 +64,17 @@ void updateManEntry(manEntry* entry){
 	read(contents, fileText, buffer.st_size);
 	close(contents);
 	char* temp = generateHash(fileText);
+	free(fileText);
 	
 	//Check if hashes match
 	if(strcmp(entry->hash,temp) == 0){
-		printf("This file has not changed\n");
 		free(temp);
-		free(fileText);
 		exit(0);
 	} else {
-		//Increase version number
+		//Increase version number and update hash
 		entry->verNum++;
+		entry->hash = temp;
+		exit(0);
 	}
 }
 
@@ -111,7 +112,7 @@ manEntry* extractEntry(char* rawText, int trailer){
 	
 	//Get the file hash
 	trailer = leader;
-	while(rawText[leader] != '\n'){
+	while(rawText[leader] != '\n' ||rawText[leader] != '\0'){
 		leader++;
 	}
 	entry->hash = malloc(SHA_DIGEST_LENGTH*2+1);

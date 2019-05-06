@@ -33,21 +33,14 @@ void compareManifests(manEntry** client, int cEntries, manEntry** server, int sE
 	//Version check, positive = client ahead, 0 = same, negative = server ahead
 	int version = client[0]->verNum - server[0]->verNum;
 	int i, j;
-	int longer;
 	char* liveHash;
 	int exists = 0;
-	
-	if(cEntries > sEntries){
-		longer = cEntries;
-	} else {
-		longer = sEntries;
-	}
 	
 	//Iterate through the client manifest for UMDE flags
 	for(i = 0; i < cEntries; i++){
 		exists = 0;
 		//Ignore the entry for the manifest itself
-		if(!strstr(client[i]->name, ".manifest")){
+		if(strstr(client[i]->name, ".manifest") == 0){
 			liveHash = genLiveHash(client[i]->name);
 			
 			for(j = 0; j < sEntries; j++){
@@ -59,7 +52,7 @@ void compareManifests(manEntry** client, int cEntries, manEntry** server, int sE
 						client[i]->code = 'U';
 					}
 					//Modify case
-					else if(version != 0 && server[j]->verNum != client[i]->verNum && strcmp(client[i]->hash, liveHash) == 0){
+					else if(version != 0 && server[j]->verNum != client[i]->verNum && strcmp(client[i]->hash, liveHash) != 0){
 						client[i]->code = 'M';
 					}
 					else{
@@ -84,7 +77,7 @@ void compareManifests(manEntry** client, int cEntries, manEntry** server, int sE
 	for(j = 0; j < sEntries; j++){
 		exists = 0;
 		//Ignore entry for the manifest itself
-		if(!strstr(server[j]->name, ".manifest")){
+		if(strstr(server[j]->name, ".manifest") == 0){
 			for(i = 0; i < cEntries; i++){
 				if(strcmp(client[i]->name,server[j]->name) == 0){
 					exists = 1;
@@ -98,12 +91,15 @@ void compareManifests(manEntry** client, int cEntries, manEntry** server, int sE
 			//The file has already been taken care of in the previous loop
 			server[j]->code = '-';
 		}
-		
 	}
+	
+	//Setting the manifest codes to avoid bugs
+	client[0]->code = '-';
+	server[0]->code = '-';
 }
 
 void writeUpdateEntry(manEntry* entry, int fileDescriptor){
-	if(entry->code != '-' || entry->code != 'E'){
+	if(entry->code != '-' && entry->code != 'E'){
 		//Get full path
 		char path[4097];
 		memset(path, 0x0, 4097);
@@ -142,11 +138,105 @@ void outputError(manEntry** entryArray, int entries){
 	}
 }
 
+manEntry** readUpdate(char* updateName){
+	struct stat buffer;
+	stat(updateName, &buffer);
+	int contents = open(updateName, readFlag, mode);
+	char* fileText = malloc(buffer.st_size*sizeof(char) + 1);
+	memset(fileText, 0x0, buffer.st_size*sizeof(char) + 1);
+	read(contents, fileText, buffer.st_size);
+	close(contents);
+	
+	int numEntries = 0;
+	int maxEntries = 10;
+	int leader = 0;
+	int trailer = 0;
+	
+	manEntry** updateArray = malloc(maxEntries*sizeof(manEntry));
+	
+	while(leader < buffer.st_size){
+		while(fileText[leader]!='\n'){
+			leader++;
+		}
+		updateArray[numEntries] = extractUpdate(fileText, trailer);
+		numEntries++;
+		
+		leader++;
+		trailer = leader;
+		
+		if(numEntries == maxEntries){
+			maxEntries *= 1.2;
+			updateArray = realloc(updateArray, maxEntries*sizeof(manEntry));
+		}
+	}
+	
+	MANIFEST_ENTRIES = numEntries;
+	
+	return updateArray;
+}
 
+manEntry* extractUpdate(char* rawText, int trailer){
+	manEntry* entry = malloc(sizeof(manEntry));
+	
+	//Get Code
+	entry->code = rawText[trailer];
+	
+	//Get Version Number
+	int leader = trailer;
+	while(rawText[leader]!= ','){
+		leader++;
+	}
+	trailer = leader;
+	while(rawText[leader]!= ','){
+		leader++;
+	}
+	char* version = malloc((leader-trailer+1)*sizeof(char));
+	strncpy(version, (char*)rawText+trailer, (leader-trailer));
+	entry->verNum = atoi(version);
+	free(version);
+	leader++;
+	
+	//Get the file path
+	trailer = leader;
+	while(rawText[leader] != ','){
+		leader++;
+	}
+	entry->name = malloc((leader-trailer)*sizeof(char)+1);
+	memset(entry->name, 0x0, (leader-trailer)*sizeof(char)+1);
+	strncpy(entry->name, (char*)rawText+trailer, (leader-trailer));
+	leader++;
+	
+	//Get the file hash
+	trailer = leader;
+	while(rawText[leader] != '\n' ||rawText[leader] != '\0'){
+		leader++;
+	}
+	entry->hash = malloc(SHA_DIGEST_LENGTH*2+1);
+	memset(entry->hash, 0x0, (leader-trailer)*sizeof(char));
+	strncpy(entry->hash,(char*)rawText+trailer,(leader-trailer));
+	
+	return entry;
+}
 
-
-
-
+char** getFileNames (manEntry** updateArray, int uEntries){
+	char** fileNameArray = malloc(uEntries*sizeof(char*));
+	int i;
+	int leader;
+	int trailer;
+	for(i = 0; i < uEntries; i++){
+		leader = strlen(updateArray[i]->name);
+		trailer = leader;
+		while(updateArray[i]->name[trailer] != '/'){
+			trailer--;
+		}
+		trailer++;
+		fileNameArray[i] = malloc((leader-trailer)*sizeof(char)+1);
+		memset(fileNameArray[i], 0x0, (leader-trailer)*sizeof(char)+1);
+		strncpy(fileNameArray[i], (char*)updateArray[i]->name+trailer, (leader-trailer));
+	}
+	
+	return fileNameArray;
+}
 
 
 
