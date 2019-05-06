@@ -8,6 +8,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include "WTF.h"
+#include <dir.h>
 
 void error(const char *msg)
 {
@@ -20,16 +21,10 @@ void check_arg(char * buffer, int fd){
     // use a switch case much much better 
     
     if (strcmp(buffer,"push")==0){
-        printf("hello world\n");
         int input_buffer;
         read(fd,&input_buffer,sizeof(int));
-        printf("input buffer %d\n",input_buffer);
-        printf("this is the read in buffer: %s\n",buffer);
         char * file_name = malloc(input_buffer*sizeof(char)+1);
-       
         read(fd,file_name,input_buffer);
-        printf("%s\n",file_name);
-        return;
         read(fd,&buffer,sizeof(int));
         char * actual_file = malloc(input_buffer*sizeof(char)+1);
         read(fd, actual_file, input_buffer);
@@ -59,6 +54,21 @@ void check_arg(char * buffer, int fd){
        destroyProject(project_name);
        return;
     }
+    
+    else if (strcmp(buffer,"create")==0){
+        int buffer;
+        read(fd,&buffer,sizeof(int));
+        char * project_name = malloc(buffer * sizeof(char)+1);
+        read(fd, project_name, buffer);
+        char * max_path = malloc(4096*sizeof(char));
+        getcwd(max_path,4096);
+        max_path = realloc(max_path,4096+strlen(argv[2]+1));
+        strcat(max_path,argv[2]);
+        int project_folder = mkdir(max_path,0777);
+        
+         
+    
+    }
 
 }
 
@@ -69,6 +79,8 @@ void* func(void *vargp)
     printf("new connection\n");
     while (1)
     {
+
+
         if (read(*fd, buffer, 255) < 0)
         {
             perror("read");
