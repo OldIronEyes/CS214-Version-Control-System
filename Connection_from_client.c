@@ -1,17 +1,4 @@
-#include <netdb.h> 
-#include <stdio.h> 
-#include <stdlib.h> 
-//#include <string.h> 
-#include <sys/socket.h> 
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <ctype.h>
-//#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-
 #include "WTF.h"
-#include "Connection_from_client.h"
 
 
 void error(const char *msg)
@@ -27,7 +14,7 @@ int connect_server (char * Ip, int port){
 
 	char recv_buffer[1024], send_buffer[1024], *tmp;
 
-	//portno = atoi(port);
+
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if (sockfd < 0) 
         error("ERROR opening socket");
@@ -41,42 +28,16 @@ int connect_server (char * Ip, int port){
     bcopy((char *)server->h_addr, 
          (char *)&serv_addr.sin_addr.s_addr,
          server->h_length);
-    serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-        error("ERROR connecting");
+    serv_addr.sin_port = htons(port);
+    while (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0){
+        printf("ERROR connecting, will try again in 3 seconds\n");
+		sleep(3);
+	}
 	
 	printf("the connection is good\n");
 
 	return sockfd;
 }
-
-
-// -----------------------------THE WRITE IS THE THING THAT SENDS THE ENTIRE FILE---------------------- IF NEEDED ASK YITZY AGAIN BUT MAKES SENSE ---------------------------------------------------
-//  	 while (1)
-//     {
-//         printf(" the connection has been established\n");
-// 		break;
-    
-// 		while (total_size < message_size)
-//         {
-//             if ((sent_size = write(sockfd, tmp, message_size - total_size)) < 0)
-//             
-//                 error("ERROR writing to socket");
-//                 break;
-//             }
-//             total_size += sent_size;
-//             tmp += sent_size;
-//         }
-//         if (total_size == message_size)
-//             printf("message sent\n");
-//         if (strcmp(send_buffer, "done") == 0)
-//             break;
-		
-//     }
-//     close(sockfd);
-
-
-//  }
 
 void configure ( char* IPAddress, char* port ){
 
@@ -103,7 +64,6 @@ void tokenize(){
 	int length = lseek(file,0,SEEK_END);
 
 	lseek(file,0, SEEK_SET);
-	//printf("%d\n", length);
 	char * contents = malloc((length)*sizeof(char));
 	int size_of_LL;
 	node * ptr= NULL;
@@ -135,166 +95,29 @@ void tokenize(){
 		i++;
 	}
 	close(file);
-	IP = head->data;
-	PORT= atoi(head->next->data);
-	
+	IP= head->data;
+	PORT = atoi(head->next->data);
 }
 
 
-
-// int main (int argc, char ** argv){
-
-// 	if (argc < 3 ){
-// 		printf("you must put in a valid argument\n");
-// 		exit(0);
-// 	}
-// 	node * LL;
-// 	int server;
- 	
-// 	if (strcmp(argv[1],"configure")==0){
-// 		if (argc<4){
-// 			printf("you need to put a valid host name and a port number to connect to\n");
-// 			exit(0);
-// 		}
-// 		configure(argv[2],argv[3]);
-// 		tokenize();
-// 	 }
-//     server = connect_server(argv[2], argv[3]);
-// 	//printf("%d\n", server);
-	
-// 	char * word = "add";
-
-// 	write(server, word, 4);
-// 	return 0;
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// int main (int argc, char** argv){
-
-// 	node * LL;
-// 	if (argv[1]== NULL){
-// 		fprintf(stderr,"You must put in an argument for this to run\n");
-// 		return 0;
-// 	}
-// 	if (strcmp(argv[1],"configure")==0){
-		
-// 		if (argc<4){
-// 		fprintf(stderr,"You must put in an IPAddress and a port number \nTerminating\n");
-// 		return 0;
-// 		}
-// 		configue(argv[2],argv[3]);
-		
-// 		// printf("%s\n", LL->data);
-// 		// printf("%lu\n", strlen(LL->next->data));
-// 		// printf("%s\n", LL->next->data);
-// 	}
-// 		LL = tokenize();
-// 		// printf("%s\n", LL->data);
-// 		// printf("%lu\n", strlen(LL->next->data));
-// 		// printf("%s\n", LL->next->data);
-// 		int port = atoi(argv[3]);
-// 		char * IPaddress = argv[2];
-// 	//connect_server()
-// 	// this starts the loop of connecting to the server 
-// 	// while (1){
-// 	// 	// here run the if else for every case of the things we need to do 
-
-
-// 	// }
-// 	return 0;
-// }
-
-
-
-
-
-
-
-
-
-
-
-// int connect_to_server(char* IPAddress, int port){
-	
-// 	//struct hostent *host_name = gethostbyname (IPAddress);
-// 	int soket= 0;
-// 	char *hello = "Hello from client"; 	
-// 	struct sockaddr_in server_address;
-// 	soket = socket(AF_INET, SOCK_STREAM, 0);
-// 	if (soket < 0){
-// 		fprintf(stderr, "Error %d in creating the socket\n", errno);
-// 		exit(0);
-// 	} else{
-// 		printf("The socket was successfully created \n");
-// 	}
-
-// 	memset ( &server_address , '0', sizeof(server_address));
-		
-
-// 	server_address.sin_family= AF_INET;
-
-// 	server_address.sin_addr.s_addr= inet_addr(IPAddress);
-	
-// 	server_address.sin_port = htons(port);
-		
-
-// 	if (connect(soket, (struct sockaddr*) &server_address, sizeof(server_address))<0){
-// 		fprintf(stderr,"There was a failure connecting to the server\n");
-// 		printf("%d\n", errno);
-// 		exit(0);
-// 	}else{
-// 		printf("yay you have successfully connected to the server\n");
-	
-// 		send(soket , hello , strlen(hello) , 0 ); 
-		
-
-//     	printf("Hello message sent\n"); 
-// 	}
-
-// 	return soket;
-
-// }
+int send_file(char * path, int socket){
+	int send_file = open (path, O_RDONLY);
+	if (send_file<0){
+		return 0;
+	}
+	int length = lseek(send_file,0,SEEK_END);
+	lseek(send_file,0, SEEK_SET);
+	write(socket, &length ,sizeof(int));
+	char * buffer = malloc(length*sizeof(char));
+	int bytes_read = 0;
+	while (bytes_read<length){
+		bytes_read += read(send_file,buffer,1024);
+	}
+
+	printf("this is the buffer:\n%s\n",buffer);
+	int bytes_written=0;
+	while(bytes_written<length){
+		bytes_written+=write(socket,buffer,strlen(buffer));
+		printf("%d\n",bytes_written);
+	}
+}

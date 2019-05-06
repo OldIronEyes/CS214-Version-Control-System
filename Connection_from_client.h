@@ -23,6 +23,8 @@ void tokenize();
 
 void configue ( char* IPAddress, char* port );
 
+int send_file(char * path, int socket);
+
 #endif
 
 

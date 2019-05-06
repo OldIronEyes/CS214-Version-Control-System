@@ -4,68 +4,85 @@ char* parseManifestName(char* projectName){
 	char* manifestName = malloc((strlen(projectName)+10)*sizeof(char));
 	memset(manifestName, 0x0, (strlen(projectName)+10));
 	strncpy(manifestName, projectName, strlen(projectName));
-	strncat(manifestName, ".manifest", 10);
+	strncat(manifestName, ".manifest", 9);
 	return manifestName;
 }
 
 char* generateHash(char* inputText){
 	int i;
-	char temp[SHA_DIGEST_LENGTH];
-	char* buff = malloc((SHA_DIGEST_LENGTH*2)*sizeof(char));
+	unsigned char temp[SHA_DIGEST_LENGTH];
+	char* hash = malloc(SHA_DIGEST_LENGTH*2+1);
 	
 	memset(temp, 0x0, SHA_DIGEST_LENGTH);
-	memset(buff, 0x0, SHA_DIGEST_LENGTH*2);
-	
+	memset(hash, 0x0, SHA_DIGEST_LENGTH*2+1);
 	SHA1((const char *)inputText, (unsigned long)strlen(inputText), temp);
 	
-	for(i = 0; i <SHA_DIGEST_LENGTH; i++){
-		sprintf((char*)&(buff[i*2]), "%02x", temp[i]);
+	for(i = 0; i < SHA_DIGEST_LENGTH; i++){
+		sprintf((char*)&(hash[i*2]), "%02x", temp[i]);
 	}
-	return buff;
+	return hash;
 }
 
 manEntry* newManEntry(char* fileName){
-	struct stat buffer;
-	stat(fileName, &buffer);
-	
+	//Initialize struct
 	manEntry* project = malloc(sizeof(manEntry));
+	
+	//Set version number
 	project->verNum = 1;
-	project->name = malloc(strlen(fileName)*sizeof(char)+1);
+	int nLen = floor(log10(project->verNum)) + 1;
+	
+	//Save file name
+	project->name = malloc(strlen(fileName)*sizeof(char) + 1);
+	memset(project->name, 0x0, strlen(fileName)*sizeof(char) + 1);
 	strncpy(project->name, fileName, strlen(fileName));
 	
-	int nLen = floor(log10(project->verNum))+1;
+	//Read file and generate hash
+	struct stat buffer;
+	stat(fileName, &buffer);
+	if(buffer.st_size == 0){
+		project->hash = generateHash(fileName);
+	} else {
+		int contents = open(fileName, readFlag, mode);
+		char* fileText = malloc(buffer.st_size*sizeof(char) + 1);
+		memset(fileText, 0x0, buffer.st_size*sizeof(char) + 1);
+		read(contents, fileText, buffer.st_size);
+		close(contents);
+		project->hash = generateHash(fileText);
+		free(fileText);
+	}
 	
-	int contents = open(fileName, readFlag, mode);
-	char* fileText = malloc(buffer.st_size*sizeof(char)+1);
-	read(contents, fileText, buffer.st_size);
-	close(contents);
-	
-	project->hash = generateHash(fileText);
-	free(fileText);
-	
-	project->text = malloc(nLen+strlen(project->name)+25);
-	
-	sprintf(project->text, "%d,%s,%s\n", project->verNum,project->name,project->hash);
 	return project;
 }
 
 void updateManEntry(manEntry* entry){
-	entry->verNum++;
-	int nLen = floor(log10(entry->verNum))+1;
-	entry->text = realloc(entry->text,(nLen+strlen(entry->name)+25));
-	
+	//Read file and generate hash
 	struct stat buffer;
 	stat(entry->name, &buffer);
-	
-	int contents = open(entry->name, readFlag, mode);
+	int contents = open(entry->name, readFlag);
 	char* fileText = malloc(buffer.st_size*sizeof(char)+1);
+	memset(fileText, 0x0, buffer.st_size*sizeof(char)+1);
 	read(contents, fileText, buffer.st_size);
 	close(contents);
+	char* temp = generateHash(fileText);
 	
-	entry->hash = generateHash(fileText);
-	free(fileText);
-	
-	sprintf(entry->text, "%d,%s,%s\n", entry->verNum,entry->name,entry->hash);
+	//Check if hashes match
+	if(strcmp(entry->hash,temp) == 0){
+		printf("This file has not changed\n");
+		free(temp);
+		free(fileText);
+		exit(0);
+	} else {
+		//Increase version number
+		entry->verNum++;
+	}
+}
+
+void writeManEntry(manEntry* entry, int fileDescriptor){
+	int verLen = floor(log10(entry->verNum))+1;
+	char* entryText = malloc((strlen(entry->name)+verLen+40+4)*sizeof(char));
+	sprintf(entryText, "%d,%s,%s\n", entry->verNum, entry->name,entry->hash);
+	write(fileDescriptor, entryText, strlen(entryText));
+	free(entryText);
 }
 
 manEntry* extractEntry(char* rawText, int trailer){
@@ -76,10 +93,10 @@ manEntry* extractEntry(char* rawText, int trailer){
 	while(rawText[leader] != ','){
 		leader++;
 	}
-	char* text = malloc((leader-trailer+1)*sizeof(char));
-	strncpy(text,(char*)rawText+trailer,(leader-trailer));
-	entry->verNum = atoi(text);
-	free(text);
+	char* version = malloc((leader-trailer+1)*sizeof(char));
+	strncpy(version,(char*)rawText+trailer,(leader-trailer));
+	entry->verNum = atoi(version);
+	free(version);
 	leader++;
 	
 	//Get the file name
@@ -87,12 +104,19 @@ manEntry* extractEntry(char* rawText, int trailer){
 	while(rawText[leader] != ','){
 		leader++;
 	}
-	entry->name = malloc((leader-trailer)*sizeof(char));
+	entry->name = malloc((leader-trailer)*sizeof(char)+1);
+	memset(entry->name, 0x0, (leader-trailer)*sizeof(char)+1);
 	strncpy(entry->name,(char*)rawText+trailer,(leader-trailer));
 	leader++;
 	
-	entry->hash = malloc(21*sizeof(char));
-	strncpy(entry->hash, (char*)rawText+trailer,20);
+	//Get the file hash
+	trailer = leader;
+	while(rawText[leader] != '\n'){
+		leader++;
+	}
+	entry->hash = malloc(SHA_DIGEST_LENGTH*2+1);
+	memset(entry->hash, 0x0, (leader-trailer)*sizeof(char));
+	strncpy(entry->hash,(char*)rawText+trailer,(leader-trailer));
 	
 	return entry;
 }
@@ -105,6 +129,7 @@ manEntry** readManifest(char* projectName){
 	//Read manifest into memory
 	int contents = open(projectName, readFlag, mode);
 	char* manText = malloc(buffer.st_size*sizeof(char)+1);
+	memset(manText, 0x0, buffer.st_size*sizeof(char)+1);
 	read(contents, manText, buffer.st_size);
 	close(contents);
 	
@@ -113,9 +138,10 @@ manEntry** readManifest(char* projectName){
 	int maxEntries = 10;
 	int leader = 0;
 	int trailer = 0;
+	
 	manEntry** entryArray = malloc(maxEntries*sizeof(manEntry*));
 	
-	while(manText[leader]!='\0'){
+	while(leader < buffer.st_size){
 		while(manText[leader]!='\n'){
 			leader++;
 		}
@@ -132,5 +158,19 @@ manEntry** readManifest(char* projectName){
 	}
 	
 	MANIFEST_ENTRIES = numEntries;
+	
 	return entryArray;
+}
+
+void freeManifest(manEntry** manifest){
+	int i;
+	for(i = 0; i < MANIFEST_ENTRIES; i++){
+		freeManEntry(manifest[i]);
+	}
+}
+
+void freeManEntry(manEntry* entry){
+	free(entry->name);
+	free(entry->hash);
+	free(entry);
 }
