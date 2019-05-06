@@ -23,6 +23,7 @@ void destroyProject(char* projectName){
 void addFile(char* projectName, char* fileName){
 	char* manifestName = parseManifestName(projectName);
 	manEntry** manifest = readManifest(manifestName);
+	
 	int i;
 	
 	for(i = 0; i < MANIFEST_ENTRIES; i++){
@@ -41,6 +42,7 @@ void addFile(char* projectName, char* fileName){
 	freeManEntry(newFile);
 	freeManifest(manifest);
 	free(manifest);
+	free(manifestName);
 }
 
 void removeFile(char* projectName, char* fileName){
@@ -84,15 +86,70 @@ void checkoutProject(char* projectName){
 void updateProject(char* projectName){
 	//TODO: Send command, recieve server's .manifest file
 	
+	int i;
+	int error = 0;
+	
 	char* manifestName = parseManifestName(projectName);
 	manEntry** clientManifest = readManifest(manifestName);
 	int cEntries = MANIFEST_ENTRIES;
 	
 	//Pointer should be to .server's manifest text
-	manEntry** serverManifest = readManifest("ay2.manifest");
+	manEntry** serverManifest = readManifest("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
 	
 	compareManifests(clientManifest, cEntries, serverManifest, sEntries);
+	
+	//Check for E flags
+	for(i = 0; i < cEntries; i++){
+		if(clientManifest[i]->code == 'E'){
+			error = 1;
+			break;
+		}
+	}
+	
+	if(error){
+		//Display Errors
+		outputError(clientManifest, cEntries);
+	} else {
+		//Write update codes
+		char* updateName = parseUpdateName(projectName);
+		int contents = open(updateName, newFlag, mode);
+		for(i = 0; i < cEntries; i++){
+			writeUpdateEntry(clientManifest[i], contents);
+		}
+		for(i = 0; i < sEntries; i++){
+			writeUpdateEntry(serverManifest[i], contents);
+		}
+		close(contents);
+	}
+	exit(0);
+}
+
+void upgradeProject(char* projectName){
+	//TODO Check if project is on the server
+	
+	char* updateName = parseUpdateName(projectName);
+	
+	if(access(updateName, F_OK) == -1){
+		printf("Update file does not exist, run Update <Project Name> first");
+		exit(0);
+	}
+	
+	struct stat buffer;
+	stat(updateName, &buffer);
+	if(buffer.st_size == 0){
+		printf("Update file is blank, no Upgrade required\n");
+		
+	}
+	
+	manEntry** updateArray = readUpdate(updateName);
+	int uEntries = MANIFEST_ENTRIES;
+	
+	char** fileNames = getFileNames(updateArray, uEntries);
+	
+	//TODO Request files from server
+	
+	//TODO Write files to the paths in updateArray[i]->name
 }
 
 
