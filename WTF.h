@@ -9,20 +9,22 @@
 #include <openssl/sha.h>
 #include <sys/stat.h>
 #include <math.h>
-#include <netdb.h> 
-#include <sys/socket.h> 
-#include <sys/types.h>
-#include <netinet/in.h>
+#include <dirent.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <dirent.h>
 #include <errno.h>
+
 
 
 int MANIFEST_ENTRIES;
 
 char* IP;
 int PORT;
+
 
 static int newFlag = O_WRONLY | O_CREAT;
 static int readFlag = O_RDONLY;
@@ -43,7 +45,6 @@ typedef struct node{
     struct node*next;
 } node;
 
-
 //Basic Manifest Functions
 char* parseManifestName(char* projectName);
 char* generateHash(char* inputText);
@@ -61,19 +62,21 @@ void addFile(char* projectName, char* fileName);
 void removeFile(char* projectName, char* fileName);
 void destroyProject(char* projectName);
 void updateProject(char* projectName);
-
-//connection to server functions 
-void configure ( char* IPAddress, char* port );
-void tokenize();
 int send_file(char * path, int socket);
-int connect_server (char * Ip, int port);
-
-
-
-
-
 
 //Update functions
+char* parseUpdateName(char* projectName);
 void compareManifests(manEntry** client, int cEntries, manEntry** server, int sEntries);
+void writeUpdateEntry(manEntry* entry, int fileDescriptor);
+void outputError(manEntry** entryArray, int entries);
+manEntry* extractUpdate(char* rawText, int trailer);
+char** getFileNames (manEntry** updateArray, int uEntries);
+
+// functions for the connection 
+int connect_server (char * Ip, int port);
+void tokenize();
+void configure ( char* IPAddress, char* port );
+
+
 
 #endif

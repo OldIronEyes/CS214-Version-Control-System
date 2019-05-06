@@ -32,29 +32,18 @@ int main (int argc, char ** argv){
 	}
 	//================================== FUNCTIONS THAT REQUIRE THE SERVER =====================================
 	else if (strcmp(argv[1],"create")==0){
-		int server = connect_server(IP,PORT);
-		write(server,"create", 7);
-		write(server,strlen(argv[2]+1),sizeof(int));
-		write(server,argv[2],strlen(argv[2])+1);
-		createProject(argv[2]);
+
+		createProject(argv[2]);	
 		
 	}
 	else if (strcmp(argv[1],"push")==0){
-		server = connect_server(IP,PORT);
-		write(server,"push", 5);
 		
-		// need to change the thing over here and also compress the file here 
-		send_file("WTFserver.h",server);
 	}
 	else if (strcmp(argv[1],"destroy")==0){
-		int socket = connect_server(IP,PORT);
-		write(server, "destroy", 8);
-		int length;
-		write(socket,&length,sizeof(int));
-		write(socket,argv[2],strlen(argv[2])+1);
-		//check for the read here 
+
 		destroyProject(argv[2]);
 	}
+
 	else if (strcmp(argv[1],"update")==0){
 		int server = connect_server(IP,PORT);
 		write(server, "update",6);

@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include "WTF.h"
-#include <dir.h>
+#include <dirent.h>
 
 void error(const char *msg)
 {
@@ -18,56 +18,16 @@ void error(const char *msg)
 
 void check_arg(char * buffer, int fd){
     // this is skelton for the main argu
-    // use a switch case much much better 
     
     if (strcmp(buffer,"push")==0){
-        int input_buffer;
-        read(fd,&input_buffer,sizeof(int));
-        char * file_name = malloc(input_buffer*sizeof(char)+1);
-        read(fd,file_name,input_buffer);
-        read(fd,&buffer,sizeof(int));
-        char * actual_file = malloc(input_buffer*sizeof(char)+1);
-        read(fd, actual_file, input_buffer);
-        char path [strlen(file_name)+2];
-        sprintf(path,"./%s",file_name);
-        int new_file = open(path,O_CREAT | O_RDWR, 0644);
-        if (new_file<0){
-            return ;
-        }
-        write(new_file,actual_file,strlen(actual_file));
-        close(new_file);
+        serverPush(fd);
     }
     else if (strcmp(buffer,"destroy")==0){
-       int input_buffer;
-       read(fd,&input_buffer,sizeof(int));
-       char* project_name = malloc(input_buffer*sizeof(char)+1);
-       read(fd,project_name,input_buffer);
-       // needs to give it a path over here for it to check.
-       int check_for_file = access(project_name/project_name.manifest, F_OK); 
-       if (check_for_file=0){
-           destroyProject(project_name);
-       }else {
-           printf("you are trying to destroy a project that does not exist\n");
-           return;
-       }
-       
-       destroyProject(project_name);
-       return;
+        serverDestroy(fd);
     }
     
     else if (strcmp(buffer,"create")==0){
-        int buffer;
-        read(fd,&buffer,sizeof(int));
-        char * project_name = malloc(buffer * sizeof(char)+1);
-        read(fd, project_name, buffer);
-        char * max_path = malloc(4096*sizeof(char));
-        getcwd(max_path,4096);
-        max_path = realloc(max_path,4096+strlen(argv[2]+1));
-        strcat(max_path,argv[2]);
-        int project_folder = mkdir(max_path,0777);
-        
-         
-    
+        serverCreate(fd);         
     }
 
 }

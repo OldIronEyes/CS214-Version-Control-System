@@ -31,7 +31,7 @@ int connect_server (char * Ip, int port){
          server->h_length);
     serv_addr.sin_port = htons(port);
     while (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0){
-        printf("It has been waiting to connect for %d seconds\n");
+        printf("Error connectin: will retry in 3 seconds \n");
 		wait_time+=3;
 		sleep(3);
 	}
@@ -102,24 +102,3 @@ void tokenize(){
 }
 
 
-int send_file(char * path, int socket){
-	int send_file = open (path, O_RDONLY);
-	if (send_file<0){
-		return 0;
-	}
-	int length = lseek(send_file,0,SEEK_END);
-	lseek(send_file,0, SEEK_SET);
-	write(socket, &length ,sizeof(int));
-	char * buffer = malloc(length*sizeof(char));
-	int bytes_read = 0;
-	while (bytes_read<length){
-		bytes_read += read(send_file,buffer,1024);
-	}
-
-	printf("this is the buffer:\n%s\n",buffer);
-	int bytes_written=0;
-	while(bytes_written<length){
-		bytes_written+=write(socket,buffer,strlen(buffer));
-		printf("%d\n",bytes_written);
-	}
-}

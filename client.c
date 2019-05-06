@@ -1,7 +1,23 @@
 #include "WTF.h"
 
+
+int check_if_there(char * projectName){
+	  DIR * project = opendir(projectName);
+	if (ENOENT == errno){
+		printf("The folder does not exist\n");
+		return -1;
+	}   
+	return 0;    
+}
+
 void createProject(char* projectName){
 	//TODO check if the project already exists on the server
+	int server = connect_server(IP,PORT);
+	write(server,"create", 7);
+
+	write(server,strlen(projectName)+1,sizeof(int));
+	write(server,projectName,strlen(projectName)+1);
+
 	
 	char* manifestName = parseManifestName(projectName);
 	int contents = open(manifestName, newFlag, mode);
@@ -16,13 +32,21 @@ void destroyProject(char* projectName){
 	char* manifestName = parseManifestName(projectName);
 	remove(manifestName);
 	free(manifestName);
-	
+
 	//TODO send command to server to remove project files
+	int server = connect_server(IP,PORT);
+	write(server, "destroy", 8);
+
+	int length;
+	write(socket,&length,sizeof(int));
+	write(socket,projectName,strlen(projectName)+1);
+
 }
 
 void addFile(char* projectName, char* fileName){
 	char* manifestName = parseManifestName(projectName);
 	manEntry** manifest = readManifest(manifestName);
+	
 	int i;
 	
 	for(i = 0; i < MANIFEST_ENTRIES; i++){
@@ -41,6 +65,7 @@ void addFile(char* projectName, char* fileName){
 	freeManEntry(newFile);
 	freeManifest(manifest);
 	free(manifest);
+	free(manifestName);
 }
 
 void removeFile(char* projectName, char* fileName){
@@ -82,19 +107,122 @@ void checkoutProject(char* projectName){
 }
 
 void updateProject(char* projectName){
-	//TODO: Send command, recieve server's .manifest file
+
+	int server = connect_server(IP,PORT);
+	write(server, "update",6);
+
+	int length;
+	read(server, &length, sizeof(int));
+	char* serverManifestText = malloc((length+1)*sizeof(char));
+	memset(serverManifestText, 0x0, length+1);
+	read(server,serverManifestText,length);
+	int server_manifest = open("a2.manifest",newFlag,0644);
+	write(server_manifest,serverManifestText,strlen(serverManifestText));
+	close(server_manifest);
+
+	int i;
+	int error = 0;
 	
 	char* manifestName = parseManifestName(projectName);
 	manEntry** clientManifest = readManifest(manifestName);
 	int cEntries = MANIFEST_ENTRIES;
 	
 	//Pointer should be to .server's manifest text
-	manEntry** serverManifest = readManifest("ay2.manifest");
+	manEntry** serverManifest = readManifest("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
 	
 	compareManifests(clientManifest, cEntries, serverManifest, sEntries);
+	
+	//Check for E flags
+	for(i = 0; i < cEntries; i++){
+		if(clientManifest[i]->code == 'E'){
+			error = 1;
+			break;
+		}
+	}
+	
+	if(error){
+		//Display Errors
+		outputError(clientManifest, cEntries);
+	} else {
+		//Write update codes
+		char* updateName = parseUpdateName(projectName);
+		int contents = open(updateName, newFlag, mode);
+		for(i = 0; i < cEntries; i++){
+			writeUpdateEntry(clientManifest[i], contents);
+		}
+		for(i = 0; i < sEntries; i++){
+			writeUpdateEntry(serverManifest[i], contents);
+		}
+		close(contents);
+	}
+	exit(0);
 }
 
+void upgradeProject(char* projectName){
+	//TODO Check if project is on the server
+	
+
+
+	
+	char* updateName = parseUpdateName(projectName);
+	
+	if(access(updateName, F_OK) == -1){
+		printf("Update file does not exist, run Update <Project Name> first");
+		exit(0);
+	}
+	
+	struct stat buffer;
+	stat(updateName, &buffer);
+	if(buffer.st_size == 0){
+		printf("Update file is blank, no Upgrade required\n");
+		
+	}
+	
+	manEntry** updateArray = readUpdate(updateName);
+	int uEntries = MANIFEST_ENTRIES;
+	
+	char** fileNames = getFileNames(updateArray, uEntries);
+	
+	//TODO Request files from server
+	
+	//TODO Write files to the paths in updateArray[i]->name
+}
+
+
+int send_file(char * path, int socket){
+	int send_file = open (path, O_RDONLY);
+	if (send_file<0){
+		return 0;
+	}
+	int length = lseek(send_file,0,SEEK_END);
+	lseek(send_file,0, SEEK_SET);
+	write(socket, &length ,sizeof(int));
+	char * buffer = malloc(length*sizeof(char));
+	int bytes_read = 0;
+	while (bytes_read<length){
+		bytes_read += read(send_file,buffer,1024);
+	}
+
+	printf("this is the buffer:\n%s\n",buffer);
+	int bytes_written=0;
+	while(bytes_written<length){
+		bytes_written+=write(socket,buffer,strlen(buffer));
+		printf("%d\n",bytes_written);
+	}
+}
+
+
+void pushFile(char * projectName){
+	int server = connect_server(IP,PORT);
+	write(server,"push", 5);
+	
+	// need to change the thing over here and also compress the file here 
+	write(server, strlen(projectName),sizeof(int));
+	write(server,projectName,strlen(projectName)+1);
+	// need to compress file here so that we can send that file 
+	send_file("WTFserver.h",server);
+}
 
 
 
