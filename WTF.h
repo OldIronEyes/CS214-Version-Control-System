@@ -13,13 +13,16 @@
 #include <ctype.h>
 #include <netdb.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
+#include <dirent.h>
 #include <errno.h>
 
 int MANIFEST_ENTRIES;
 
 char* IP;
 int PORT;
+
 
 static int newFlag = O_WRONLY | O_CREAT;
 static int readFlag = O_RDONLY;
@@ -75,47 +78,19 @@ void writeCommitEntry(manEntry* entry, int fileDescriptor);
 manEntry* extractCommit(char* rawText, int trailer);
 
 //Compression Functions
-
 /////mainCompress is to be used on the client side and assumes input from a .Commit file
 char* mainCompress(char* projectName, manEntry** entries, int cEntries);
 char* serverCompress(char* projectName);
-
 /////mainExtract is to be used on the client side after recieving the project files
 /////then has to remove() the archive after extracting files
 void mainExtract(char* tarName);
-
 /////serverExtract assumes that the archive is already in the /<projectName>/ folder
 void serverExtract(char* projectName, char* tarPath);
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// functions for the connection 
+int connect_server (char * Ip, int port);
+void tokenize();
+void configure ( char* IPAddress, char* port );
 
 #endif
