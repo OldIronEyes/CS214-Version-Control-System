@@ -7,7 +7,7 @@ int main (int argc, char ** argv){
 	}
 	node * LL;
 	int server;
- 	
+ 	//==============================FUNCTIONS THAT DO NOT NEED TO CONNECT TO THE SERVER ====================================
 	if (strcmp(argv[1],"configure")==0){
 		if (argc<4){
 			printf("you need to put a valid host name and a port number to connect to\n");
@@ -15,20 +15,7 @@ int main (int argc, char ** argv){
 		}
 		configure(argv[2],argv[3]);
 		tokenize();
-	}
-	else if (strcmp(argv[1],"push")==0){
-		server = connect_server(IP,PORT);
-		// need to change the thing over here and also compress the file here 
-		send_file("WTFserver.h",server);
-	}
-	else if (strcmp(argv[1],"destroy")==0){
-		int socket = connect_server(IP,PORT);
-		int length;
-		write(socket,&length,sizeof(int));
-		write(socket,argv[2],strlen(argv[2])+1);
-		//check for the read here 
-		destroyProject(argv[2]);
-	}
+	}	
 	else if(strcmp(argv[1],"add")){
 		if (argc<4){
 			printf("you must have a projectname and a filename\n");
@@ -43,8 +30,25 @@ int main (int argc, char ** argv){
 		}
 		removeFile(argv[2],argv[3]);
 	}
-	else if (strcmp(argv[1],"history")==0){
+	//================================== FUNCTIONS THAT REQUIRE THE SERVER =====================================
+	else if (strcmp(argv[1],"create")==0){
 
+		createProject(argv[2]);	
+		
+	}
+	else if (strcmp(argv[1],"push")==0){
+		
+	}
+	else if (strcmp(argv[1],"destroy")==0){
+
+		destroyProject(argv[2]);
+	}
+
+	else if (strcmp(argv[1],"update")==0){
+		int server = connect_server(IP,PORT);
+		write(server, "update",6);
+		updateProject(argv[2]);
+		
 	}
 
 	
