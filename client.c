@@ -191,6 +191,17 @@ void commitProject(char* projectName){
 	}
 	
 	//TODO Check if project exists on the server
+
+	int server = connect_server(IP,PORT);
+	write(server, "commit",7);
+	int buffer;
+	write(server,strlen(projectName)+1,sizeof(int));
+	write(server,projectName,strlen(projectName)+1);
+
+	send_file(".commit",server);
+
+
+
 	
 	//TODO Recieve server's .Manifest file
 	

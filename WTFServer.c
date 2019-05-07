@@ -29,6 +29,9 @@ void check_arg(char * buffer, int fd){
     else if (strcmp(buffer,"create")==0){
         serverCreate(fd);         
     }
+    else if (strcmp(buffer,"commit")==0){
+        serverCommit(fd);
+    }
 
 }
 

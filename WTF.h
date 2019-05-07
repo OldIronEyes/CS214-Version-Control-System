@@ -97,5 +97,10 @@ void configure ( char* IPAddress, char* port );
 void error(const char *msg);
 
 void* func(void *vargp);
+void serverCommit(int fd);
+void serverPush(int fd);
+void serverDestroy(int fd);
+void serverCreate(int fd);
+
 
 #endif

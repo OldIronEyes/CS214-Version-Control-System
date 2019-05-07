@@ -55,3 +55,24 @@ void serverCreate(int fd){
         return;
     }
 }
+
+void serverCommit(int fd){
+    int buffer;
+    read (fd, &buffer, sizeof(int));
+    char * project_name = malloc(buffer*sizeof(char)+1);
+    read (fd, project_name,buffer);
+    char* commit_name = malloc(strlen(project_name)*2+9);
+    sprintf(commit_name, "%s/%s.commit", project_name, project_name);
+
+    
+    if (check_if_there(commit_name)!=0){
+        printf("The file is not on the server side\n");
+        return;
+    }
+    int removed = remove( ".commit");
+    int file = open(".commit",newFlag);
+    
+
+
+
+}
