@@ -112,7 +112,7 @@ manEntry* extractEntry(char* rawText, int trailer){
 	
 	//Get the file hash
 	trailer = leader;
-	while(rawText[leader] != '\n' ||rawText[leader] != '\0'){
+	while(rawText[leader] != '\n'){
 		leader++;
 	}
 	entry->hash = malloc(SHA_DIGEST_LENGTH*2+1);
@@ -123,7 +123,6 @@ manEntry* extractEntry(char* rawText, int trailer){
 }
 
 manEntry** readManifest(char* projectName){
-	//Get size of manifest file
 	struct stat buffer;
 	stat(projectName, &buffer);
 	

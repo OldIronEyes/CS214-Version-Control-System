@@ -191,17 +191,6 @@ void commitProject(char* projectName){
 	}
 	
 	//TODO Check if project exists on the server
-
-	int server = connect_server(IP,PORT);
-	write(server, "commit",7);
-	int buffer;
-	write(server,strlen(projectName)+1,sizeof(int));
-	write(server,projectName,strlen(projectName)+1);
-
-	send_file(".commit",server);
-
-
-
 	
 	//TODO Recieve server's .Manifest file
 	
@@ -280,22 +269,28 @@ void commitProject(char* projectName){
 }
 
 void pushProject(char * projectName){
-	int server = connect_server(IP,PORT);
-	write(server,"push", 5);
-	
 	char* commitName = parseCommitName(projectName);
 	if(access(commitName, F_OK) != 0){
 		printf("There is no commit file, commit first\n");
 		exit(0);
 	}
 	
+	int server = connect_server(IP,PORT);
+	write(server,"push", 5);
+	
 	write(server, strlen(projectName),sizeof(int));
 	write(server,projectName,strlen(projectName));
 	
-	// need to compress file here so that we can send that file 
+	manEntry** commitArray = readCommit(commitName);
+	int cEntries = MANIFEST_ENTRIES;
 	
+	char* tarName = mainCompress(projectName, commitArray, cEntries);
 	
-	send_file("WTFserver.h",server);
+	send_file(tarName,server);
+	
+	remove(commitName);
+	remove(tarName);
+	free(tarName);
 }
 
 int send_file(char * path, int socket){
@@ -325,7 +320,7 @@ int check_if_there(char * projectName){
 	if (ENOENT == errno){
 		printf("The folder does not exist\n");
 		return -1;
-	}   
+	}
 	return 0;
 }
 
