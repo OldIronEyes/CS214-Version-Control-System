@@ -38,12 +38,7 @@ void addFile(char* projectName, char* fileName){
 	
 	int contents = open(manifestName, addFlag, mode);
 	writeManEntry(newFile, contents);
-	close(contents);
-	freeManEntry(newFile);
-	freeManifest(manifest);
-	free(manifest);
-	free(manifestName);
-}
+	}
 
 void removeFile(char* projectName, char* fileName){
 	int i;
@@ -97,7 +92,7 @@ void updateProject(char* projectName){
 	manEntry** serverManifest = readManifest("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
 	
-	compareManifests(clientManifest, cEntries, serverManifest, sEntries);
+	//compareUpdateManifests(clientManifest, cEntries, serverManifest, sEntries);
 	
 	//Check for E flags
 	for(i = 0; i < cEntries; i++){
@@ -108,7 +103,6 @@ void updateProject(char* projectName){
 	}
 	
 	if(error){
-		//Display Errors
 		outputError(clientManifest, cEntries);
 	} else {
 		//Write update codes
@@ -152,7 +146,45 @@ void upgradeProject(char* projectName){
 	//TODO Write files to the paths in updateArray[i]->name
 }
 
-
+//TODO
+//TODO COMMIT NEEDS TO BE FINISHED
+//TODO
+void commitProject(char* projectName){
+	//TODO Check for .update file
+	
+	//TODO Check if project exists on the server
+	
+	//TODO Recieve server's .Manifest file
+	
+	int i;
+	int error = 0;
+	
+	char* manifestName = parseManifestName(projectName);
+	manEntry** clientManifest = readManifest(manifestName);
+	int cEntries = MANIFEST_ENTRIES;
+	
+	//Pointer should be to server's .manifest text
+	manEntry** serverManifest = readManifest("a2.manifest");
+	int sEntries = MANIFEST_ENTRIES;
+	
+	if(clientManifest[0]->verNum != serverManifest[0]->verNum){
+		printf("The version numbers of your projects do not match.\n");
+		printf("Update and upgrade your local files first.\n");
+		exit(0);
+	}
+	
+	//compareCommitManifests(clientManifest, cEntries, serverManifest, sEntries);
+	
+	for(i = 0; i < cEntries; i++){
+		if(clientManifest[i]->code == 'E'){
+			error = 1;
+			break;
+		}
+	}
+	if(error){
+		outputError(clientManifest, cEntries);
+	}
+}
 
 
 
