@@ -1,6 +1,5 @@
 #include "WTF.h"
 
-
 int check_if_there(char * projectName){
 	  DIR * project = opendir(projectName);
 	if (ENOENT == errno){
@@ -123,9 +122,6 @@ void updateProject(char* projectName){
 	int i;
 	int error = 0;
 	
-	int i;
-	int error = 0;
-	
 	char* manifestName = parseManifestName(projectName);
 	manEntry** clientManifest = readManifest(manifestName);
 	int cEntries = MANIFEST_ENTRIES;
@@ -134,9 +130,8 @@ void updateProject(char* projectName){
 	manEntry** serverManifest = readManifest("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
 	
-	//compareUpdateManifests(clientManifest, cEntries, serverManifest, sEntries);
+	//TODO compareUpdateManifests(clientManifest, cEntries, serverManifest, sEntries);
 	
-	//Check for E flags
 	for(i = 0; i < cEntries; i++){
 		if(clientManifest[i]->code == 'E'){
 			error = 1;
@@ -147,7 +142,6 @@ void updateProject(char* projectName){
 	if(error){
 		outputError(clientManifest, cEntries);
 	} else {
-		//Write update codes
 		char* updateName = parseUpdateName(projectName);
 		int contents = open(updateName, newFlag, mode);
 		for(i = 0; i < cEntries; i++){
@@ -166,6 +160,56 @@ void upgradeProject(char* projectName){
 	
 
 
+	
+	char* updateName = parseUpdateName(projectName);
+	
+	if(access(updateName, F_OK) == -1){
+		printf("Update file does not exist, run Update <Project Name> first");
+		exit(0);
+	}
+	
+	struct stat buffer;
+	stat(updateName, &buffer);
+	if(buffer.st_size == 0){
+		printf("Update file is blank, no Upgrade required\n");
+		
+	}
+	
+	manEntry** updateArray = readUpdate(updateName);
+	int uEntries = MANIFEST_ENTRIES;
+	
+	char** fileNames = getFileNames(updateArray, uEntries);
+	
+	//TODO Request files from server
+	
+	//TODO Write files to the paths in updateArray[i]->name
+}
+
+
+int send_file(char * path, int socket){
+	int send_file = open (path, O_RDONLY);
+	if (send_file<0){
+		return 0;
+	}
+	int length = lseek(send_file,0,SEEK_END);
+	lseek(send_file,0, SEEK_SET);
+	write(socket, &length ,sizeof(int));
+	char * buffer = malloc(length*sizeof(char));
+	int bytes_read = 0;
+	while (bytes_read<length){
+		bytes_read += read(send_file,buffer,1024);
+	}
+
+	printf("this is the buffer:\n%s\n",buffer);
+	int bytes_written=0;
+	while(bytes_written<length){
+		bytes_written+=write(socket,buffer,strlen(buffer));
+		printf("%d\n",bytes_written);
+	}
+}
+
+void upgradeProject(char* projectName){
+	//TODO Check if project is on the server
 	
 	char* updateName = parseUpdateName(projectName);
 	
@@ -291,7 +335,6 @@ void pushFile(char * projectName){
 	// need to compress file here so that we can send that file 
 	send_file("WTFserver.h",server);
 }
-
 
 
 
