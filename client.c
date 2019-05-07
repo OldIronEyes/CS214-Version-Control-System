@@ -122,9 +122,6 @@ void updateProject(char* projectName){
 	int i;
 	int error = 0;
 	
-	int i;
-	int error = 0;
-	
 	char* manifestName = parseManifestName(projectName);
 	manEntry** clientManifest = readManifest(manifestName);
 	int cEntries = MANIFEST_ENTRIES;

@@ -78,25 +78,15 @@ void writeCommitEntry(manEntry* entry, int fileDescriptor);
 manEntry* extractCommit(char* rawText, int trailer);
 
 //Compression Functions
-
 /////mainCompress is to be used on the client side and assumes input from a .Commit file
 char* mainCompress(char* projectName, manEntry** entries, int cEntries);
 char* serverCompress(char* projectName);
-
 /////mainExtract is to be used on the client side after recieving the project files
 /////then has to invoke the system command "rm tarName" to get rid of the archive
 void mainExtract(char* tarName);
-
 /////serverExtract assumes that the archive is already in the /<projectName>/ folder
 void serverExtract(char* projectName, char* tarPath);
 
-//Update functions
-char* parseUpdateName(char* projectName);
-void compareManifests(manEntry** client, int cEntries, manEntry** server, int sEntries);
-void writeUpdateEntry(manEntry* entry, int fileDescriptor);
-void outputError(manEntry** entryArray, int entries);
-manEntry* extractUpdate(char* rawText, int trailer);
-char** getFileNames (manEntry** updateArray, int uEntries);
 
 // functions for the connection 
 int connect_server (char * Ip, int port);
