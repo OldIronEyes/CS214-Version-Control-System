@@ -81,7 +81,7 @@ char* mainCompress(char* projectName, manEntry** entries, int cEntries);
 char* serverCompress(char* projectName);
 
 /////mainExtract is to be used on the client side after recieving the project files
-/////then has to invoke the system command "rm tarName" to get rid of the archive
+/////then has to remove() the archive after extracting files
 void mainExtract(char* tarName);
 
 /////serverExtract assumes that the archive is already in the /<projectName>/ folder
