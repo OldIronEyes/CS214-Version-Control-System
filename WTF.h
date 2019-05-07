@@ -10,6 +10,11 @@
 #include <sys/stat.h>
 #include <math.h>
 #include <dirent.h>
+#include <ctype.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <errno.h>
 
 int MANIFEST_ENTRIES;
 
@@ -28,6 +33,11 @@ typedef struct _manEntry {
 	char* hash;
 	char code;
 } manEntry;
+
+typedef struct node{
+    char* data;
+    struct node* next;
+} node;
 
 //Core client Functions
 void createProject(char* projectName);
