@@ -315,7 +315,7 @@ int check_if_there(char * projectName){
 		printf("The folder does not exist\n");
 		return -1;
 	}   
-	return 0;    
+	return 0;
 }
 
 
