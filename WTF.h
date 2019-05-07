@@ -29,6 +29,16 @@ typedef struct _manEntry {
 	char code;
 } manEntry;
 
+//Core client Functions
+void createProject(char* projectName);
+void addFile(char* projectName, char* fileName);
+void removeFile(char* projectName, char* fileName);
+void destroyProject(char* projectName);
+void updateProject(char* projectName);
+void upgradeProject(char* projectName);
+void commitProject(char* projectName);
+void pushProject(char* projectName);
+
 //Basic Manifest Functions
 char* parseManifestName(char* projectName);
 char* generateHash(char* inputText);
@@ -40,19 +50,62 @@ manEntry** readManifest(char* projectName);
 void freeManifest(manEntry** manifest);
 void freeManEntry(manEntry* entry);
 
-//Core client functions
-void createProject(char* projectName);
-void addFile(char* projectName, char* fileName);
-void removeFile(char* projectName, char* fileName);
-void destroyProject(char* projectName);
-void updateProject(char* projectName);
-
-//Update functions
+//Update+Upgrade Functions
 char* parseUpdateName(char* projectName);
-void compareManifests(manEntry** client, int cEntries, manEntry** server, int sEntries);
+void compareUpdateManifests(manEntry** client, int cEntries, manEntry** server, int sEntries);
 void writeUpdateEntry(manEntry* entry, int fileDescriptor);
-void outputError(manEntry** entryArray, int entries);
 manEntry* extractUpdate(char* rawText, int trailer);
+void outputError(manEntry** entryArray, int entries);
 char** getFileNames (manEntry** updateArray, int uEntries);
+
+//Commit+Push Functions
+char* parseCommitName(char* projectName);
+void compareCommitManifests(manEntry** client, int cEntries, manEntry** server, int sEntries);
+void writeCommitEntry(manEntry* entry, int fileDescriptor);
+manEntry* extractCommit(char* rawText, int trailer);
+
+//Compression Functions
+
+/////mainCompress is to be used on the client side and assumes input from a .Commit file
+char* mainCompress(char* projectName, manEntry** entries, int cEntries);
+char* serverCompress(char* projectName);
+
+/////mainExtract is to be used on the client side after recieving the project files
+/////then has to invoke the system command "rm tarName" to get rid of the archive
+void mainExtract(char* tarName);
+
+/////serverExtract assumes that the archive is already in the /<projectName>/ folder
+void serverExtract(char* projectName, char* tarPath);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif
