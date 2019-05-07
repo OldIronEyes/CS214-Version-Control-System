@@ -93,4 +93,12 @@ int connect_server (char * Ip, int port);
 void tokenize();
 void configure ( char* IPAddress, char* port );
 
+//Server functions 
+void serverCommit(int fd);
+void serverPush(int fd);
+void serverDestroy(int fd);
+void serverCreate(int fd);
+void serverUpgrade(int fd);
+
+
 #endif

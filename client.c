@@ -18,13 +18,13 @@ void createProject(char* projectName){
 }
 
 void destroyProject(char* projectName){
-	//TODO check if te project already exists on the server
+
 	
 	char* manifestName = parseManifestName(projectName);
 	remove(manifestName);
 	free(manifestName);
 
-	//TODO send command to server to remove project files
+	
 	int server = connect_server(IP,PORT);
 	write(server, "destroy", 8);
 
@@ -147,18 +147,25 @@ void updateProject(char* projectName){
 }
 
 void upgradeProject(char* projectName){
-	//TODO Check if project is on the server
+
 	
 	char* updateName = parseUpdateName(projectName);
+
+	int server = connect_server(IP,PORT);
+	int buffer;
+	write(server, "upgrade",8);
+	write(server,strlen(projectName),sizeof(int));
+	write(server,projectName,strlen(projectName)+1);
+
 	
 	if(access(updateName, F_OK) == -1){
 		printf("Update file does not exist, run Update <Project Name> first");
 		exit(0);
 	}
 	
-	struct stat buffer;
+	struct stat third;
 	stat(updateName, &buffer);
-	if(buffer.st_size == 0){
+	if(third.st_size == 0){
 		printf("Update file is blank, no Upgrade required\n");
 		
 	}
@@ -169,6 +176,22 @@ void upgradeProject(char* projectName){
 	char** fileNames = getFileNames(updateArray, uEntries);
 	
 	//TODO Request files from server
+		// get the file name 
+	int second;
+	read (server,&second,sizeof(int));
+	char * file_name = malloc(second*sizeof(char));
+	read(server,file_name,second);
+
+	// get the file size
+	read(server, &second, sizeof(int));
+	char * upgraded_file= malloc(second*sizeof(char));
+	read(server, upgraded_file,second);
+
+	int new_file = open(file_name,newFlag);
+	write(new_file,upgraded_file,second);
+	close(new_file);
+
+	mainExtract(file_name);
 	
 	//TODO Write files to the paths in updateArray[i]->name
 }
@@ -176,11 +199,12 @@ void upgradeProject(char* projectName){
 void commitProject(char* projectName){
 	int noUpdate = 1;
 	char* updateName = parseUpdateName(projectName);
+	struct stat file;
 	if(access(updateName, F_OK) == 0){
-		struct stat buffer;
-		stat(updateName, &buffer);
 		
-		if(buffer.st_size != 0){
+		stat(updateName, &file);
+		
+		if(file.st_size != 0){
 			noUpdate = 0;
 		}
 	}
@@ -190,10 +214,27 @@ void commitProject(char* projectName){
 		printf("Your project is behind the repository. Update and Upgrade to sync up before attempting to commit again\n");
 	}
 	
-	//TODO Check if project exists on the server
 	
-	//TODO Recieve server's .Manifest file
+	int server = connect_server(IP,PORT);
+	write(server, "commit",7);
+	int buffer;
+
+	//Size of project name
+	write(server,strlen(projectName)+1,sizeof(int));
 	
+	//Project name
+	write(server,projectName,strlen(projectName));
+
+
+	read(server, &buffer, sizeof(int));
+	char* manifestText = malloc(buffer*sizeof(char));
+
+	read(server, manifestText, buffer);
+
+	int servermanifest = open("a2.manifest", newFlag, mode);
+	write(servermanifest, manifestText, strlen(manifestText));
+	close(servermanifest);
+
 	int i;
 	int error = 0;
 	
@@ -263,8 +304,7 @@ void commitProject(char* projectName){
 	}
 	close(commitName);
 	
-	//TODO send the commit file to the server
-	//All other commit files for the project should be purged
+	send_file(commitName, server);
 	
 }
 
@@ -311,7 +351,7 @@ int send_file(char * path, int socket){
 	int bytes_written=0;
 	while(bytes_written<length){
 		bytes_written+=write(socket,buffer,strlen(buffer));
-		printf("%d\n",bytes_written);
+
 	}
 }
 
