@@ -8,7 +8,6 @@ void error(const char *msg)
 
 int connect_server (char * Ip, int port){
 	int sockfd, portno, n, status, message_size, sent_size, total_size;
-	int wait_time=0;
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
@@ -31,7 +30,7 @@ int connect_server (char * Ip, int port){
     serv_addr.sin_port = htons(port);
     while (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0){
         printf("Error connectin: will retry in 3 seconds \n");
-		wait_time+=3;
+		
 		sleep(3);
 	}
 	
