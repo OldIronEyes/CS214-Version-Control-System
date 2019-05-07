@@ -1,23 +1,32 @@
- test case 1) This test case is we are just creating the project so it should show up on the server side.
+ 
 
-test case 2)Then we are testing the add function. This has two test cases in it. The first one is that we are just adding two files. The next one is that we are trying to add a file that is already in the project. 
+test case 1) This test case is we are just creating the project so it should show up on the server side.
 
-test case 3) We are running two test cases to test the remove function. The first one is that we are trying to just remove a file. The second test case is that we are trying to remove a file that is not in the project. 
+test case 2)We are testing the add function. This has two test cases in it. 
+	a)The first one is that we are just adding two files. 
+	b)The next one is that we are trying to add a file that is already in the project. 
+
+test case 3) We are running two test cases to test the remove function.
+	a)The first one is that we are trying to just remove a file. 
+	b)The second test case is that we are trying to remove a file that is not in the project. 
 
 test case 4) This test case is trying to push something to the server without a commit first. 
 
-test case 5) This is going to commit and then push. 
+test case 5) This is attempting to commit without any files differences between the server and the client.
 
-test case 6) Before we do this test we are going to delete all the files in the client side folder and then try to checkout the folder from the server.
+test case 6) This is going to commit and then push. 
 
-test case 7) We are going to try to upgrade, but there is no update file on the client side since it was deleted before.
+test case 7) Before we do this test we are going to delete all the files in the client side folder and then try to checkout the folder from the server.
 
-test case 8) This we are going to try to remove a file and then update on the client side.
+test case 8) We are going to try to upgrade, but there is no update file on the client side since it was deleted before.
 
-test case 9) This we are going to try and commit to the server.
+test case 9) This we are going to try to remove a file and then update on the server side.
 
-test case 10) This is just going to upgrade the client's project from the server's project.
+test case 10) This we are going to try and commit to the server.
 
-test case 11) This is a test to destroy the project and delete everything the server side.
 
-test case 12) This test case is that we are trying to do anything to the project, when it is not created.
+test case 11) This is just going to upgrade the client's project from the server's project.
+
+test case 12) This is a test to destroy the project and delete everything the server side.
+
+test case 13) This test case is that we are trying to do anything to the project, when it is not created.

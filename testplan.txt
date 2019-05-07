@@ -1,0 +1,33 @@
+ 
+each test plan number correlates to the test case number.
+
+
+test plan 1) The input we have is just using the create function to create a project folder on the server side. The outcome we expect is that there is not a directory on the server's side with the project name that we inputted. 
+
+test plan 2)
+	a) The input we are giving it is a simple .txt file. The outcome is that it is now in the client's project folder.
+	b) We are giving it another file that is already in the project. We are expecting this to fail since we would not be able to add a file that is already in the folder.
+
+test plan 3) 
+	a) The input we are giving is a file that is in the project folder on the client side. The outcome would be that after this is run we do not have this file anymore since it was deleted. 
+	b)The input we give is that we are going to put in a file name that is not in the project and we are expecting it to fail since we cannot remove something that is not in the project.
+
+test plan 4) The input is a change in the folder and trying to then push it to the server. This will not work since there was no commit done before it. 
+
+test plan 5) The input is a commit without any changes to the client's files. This would result in a fail since we are not changing any files. 
+
+test plan 6) This will have a change in the client's project and it will then commit and then push to the server. This will then update the server's project. The output is that we are expecting the server's project to be the same as the one on the client's machine.
+
+test plan 7) We will be deleting everything from the client's project, and then trying to checkout the server's project. The output would be that the client now has the same project as what was on the server.
+
+test plan 8) We are trying to do an upgrade based on what is on the server's project. But since we deleted the update file on the client, the output is an expected failure.
+
+test plan 9) The input would be that we are going to remove a file from the client's side then update the server side. The output is going to be that the server now has everything except the removed file. 
+
+test plan 10) This is going to try and commit to the server, but it would fail since there is a .update file. This means that the client is behind the server. 
+
+test plan 11) The input would be that we are going to upgrade the client's project from the server's project. The output would be that the client and the server now have the same exact project. 
+
+test plan 12) The input would be the destroy call. The output would be that it would destroy the server's project. On the client side it would destroy the .manifest folder. 
+
+test plan 13) Since we just deleted the project from the server side, anything that we do to the server will fail since the project there does not exist. 
