@@ -94,6 +94,7 @@ void mainExtract(char* tarName){
 	printf("%s\n", command);
 	system(command);
 	free(command);
+	remove(tarName);
 }
 
 //Extracts a tar file into its project folder

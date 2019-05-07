@@ -76,6 +76,7 @@ char* parseCommitName(char* projectName);
 void compareCommitManifests(manEntry** client, int cEntries, manEntry** server, int sEntries);
 void writeCommitEntry(manEntry* entry, int fileDescriptor);
 manEntry* extractCommit(char* rawText, int trailer);
+manEntry* readCommit(char* commitName);
 
 //Compression Functions
 /////mainCompress is to be used on the client side and assumes input from a .Commit file
@@ -87,11 +88,14 @@ void mainExtract(char* tarName);
 /////serverExtract assumes that the archive is already in the /<projectName>/ folder
 void serverExtract(char* projectName, char* tarPath);
 
-
 // functions for the connection 
 int connect_server (char * Ip, int port);
 void tokenize();
 void configure ( char* IPAddress, char* port );
 
+//server functions
+void error(const char *msg);
+
+void* func(void *vargp);
 
 #endif

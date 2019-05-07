@@ -29,7 +29,7 @@ char* genLiveHash(char* fileName){
 	return hash;
 }
 
-void compareManifests(manEntry** client, int cEntries, manEntry** server, int sEntries){
+void compareUpdateManifests(manEntry** client, int cEntries, manEntry** server, int sEntries){
 	//Version check, positive = client ahead, 0 = same, negative = server ahead
 	int version = client[0]->verNum - server[0]->verNum;
 	int i, j;

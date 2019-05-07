@@ -1,14 +1,5 @@
 #include "WTF.h"
 
-int check_if_there(char * projectName){
-	  DIR * project = opendir(projectName);
-	if (ENOENT == errno){
-		printf("The folder does not exist\n");
-		return -1;
-	}   
-	return 0;    
-}
-
 void createProject(char* projectName){
 	//TODO check if the project already exists on the server
 	int server = connect_server(IP,PORT);
@@ -17,7 +8,6 @@ void createProject(char* projectName){
 	write(server,strlen(projectName)+1,sizeof(int));
 	write(server,projectName,strlen(projectName)+1);
 
-	
 	char* manifestName = parseManifestName(projectName);
 	int contents = open(manifestName, newFlag, mode);
 	manEntry* newProject = newManEntry(manifestName);
@@ -28,6 +18,8 @@ void createProject(char* projectName){
 }
 
 void destroyProject(char* projectName){
+	//TODO check if te project already exists on the server
+	
 	char* manifestName = parseManifestName(projectName);
 	remove(manifestName);
 	free(manifestName);
@@ -106,10 +98,9 @@ void checkoutProject(char* projectName){
 }
 
 void updateProject(char* projectName){
-
 	int server = connect_server(IP,PORT);
 	write(server, "update",6);
-
+	
 	int length;
 	read(server, &length, sizeof(int));
 	char* serverManifestText = malloc((length+1)*sizeof(char));
@@ -130,7 +121,7 @@ void updateProject(char* projectName){
 	manEntry** serverManifest = readManifest("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
 	
-	//TODO compareUpdateManifests(clientManifest, cEntries, serverManifest, sEntries);
+	compareUpdateManifests(clientManifest, cEntries, serverManifest, sEntries);
 	
 	for(i = 0; i < cEntries; i++){
 		if(clientManifest[i]->code == 'E'){
@@ -158,9 +149,6 @@ void updateProject(char* projectName){
 void upgradeProject(char* projectName){
 	//TODO Check if project is on the server
 	
-
-
-	
 	char* updateName = parseUpdateName(projectName);
 	
 	if(access(updateName, F_OK) == -1){
@@ -185,111 +173,22 @@ void upgradeProject(char* projectName){
 	//TODO Write files to the paths in updateArray[i]->name
 }
 
-
-int send_file(char * path, int socket){
-	int send_file = open (path, O_RDONLY);
-	if (send_file<0){
-		return 0;
-	}
-	int length = lseek(send_file,0,SEEK_END);
-	lseek(send_file,0, SEEK_SET);
-	write(socket, &length ,sizeof(int));
-	char * buffer = malloc(length*sizeof(char));
-	int bytes_read = 0;
-	while (bytes_read<length){
-		bytes_read += read(send_file,buffer,1024);
-	}
-
-	printf("this is the buffer:\n%s\n",buffer);
-	int bytes_written=0;
-	while(bytes_written<length){
-		bytes_written+=write(socket,buffer,strlen(buffer));
-		printf("%d\n",bytes_written);
-	}
-}
-
-void upgradeProject(char* projectName){
-	//TODO Check if project is on the server
-	
-	char* updateName = parseUpdateName(projectName);
-	
-	if(access(updateName, F_OK) == -1){
-		printf("Update file does not exist, run Update <Project Name> first");
-		exit(0);
-	}
-	
-	struct stat buffer;
-	stat(updateName, &buffer);
-	if(buffer.st_size == 0){
-		printf("Update file is blank, no Upgrade required\n");
-		
-	}
-	
-	manEntry** updateArray = readUpdate(updateName);
-	int uEntries = MANIFEST_ENTRIES;
-	
-	char** fileNames = getFileNames(updateArray, uEntries);
-	
-	//TODO Request files from server
-	
-	//TODO Write files to the paths in updateArray[i]->name
-}
-
-
-int send_file(char * path, int socket){
-	int send_file = open (path, O_RDONLY);
-	if (send_file<0){
-		return 0;
-	}
-	int length = lseek(send_file,0,SEEK_END);
-	lseek(send_file,0, SEEK_SET);
-	write(socket, &length ,sizeof(int));
-	char * buffer = malloc(length*sizeof(char));
-	int bytes_read = 0;
-	while (bytes_read<length){
-		bytes_read += read(send_file,buffer,1024);
-	}
-
-	printf("this is the buffer:\n%s\n",buffer);
-	int bytes_written=0;
-	while(bytes_written<length){
-		bytes_written+=write(socket,buffer,strlen(buffer));
-		printf("%d\n",bytes_written);
-	}
-}
-
-void upgradeProject(char* projectName){
-	//TODO Check if project is on the server
-	
-	char* updateName = parseUpdateName(projectName);
-	
-	if(access(updateName, F_OK) == -1){
-		printf("Update file does not exist, run Update <Project Name> first");
-		exit(0);
-	}
-	
-	struct stat buffer;
-	stat(updateName, &buffer);
-	if(buffer.st_size == 0){
-		printf("Update file is blank, no Upgrade required\n");
-		
-	}
-	
-	manEntry** updateArray = readUpdate(updateName);
-	int uEntries = MANIFEST_ENTRIES;
-	
-	char** fileNames = getFileNames(updateArray, uEntries);
-	
-	//TODO Request files from server
-	
-	//TODO Write files to the paths in updateArray[i]->name
-}
-
-//TODO
-//TODO COMMIT NEEDS TO BE FINISHED
-//TODO
 void commitProject(char* projectName){
-	//TODO Check for .update file
+	int noUpdate = 1;
+	char* updateName = parseUpdateName(projectName);
+	if(access(updateName, F_OK) == 0){
+		struct stat buffer;
+		stat(updateName, &buffer);
+		
+		if(buffer.st_size != 0){
+			noUpdate = 0;
+		}
+	}
+	free(updateName);
+	
+	if(!noUpdate){
+		printf("Your project is behind the repository. Update and Upgrade to sync up before attempting to commit again\n");
+	}
 	
 	//TODO Check if project exists on the server
 	
@@ -301,10 +200,22 @@ void commitProject(char* projectName){
 	char* manifestName = parseManifestName(projectName);
 	manEntry** clientManifest = readManifest(manifestName);
 	int cEntries = MANIFEST_ENTRIES;
+	char* liveHash;
+	
+	for(i = 0; i < cEntries; i++){
+		liveHash = genLiveHash(clientManifest[i]->name);
+		if(strcmp(liveHash, clientManifest[i]->hash) != 0){
+			clientManifest[i]->verNum++;
+			free(liveHash);
+		}
+	}
 	
 	//Pointer should be to server's .manifest text
 	manEntry** serverManifest = readManifest("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
+	for(i = 0; i < sEntries; i++){
+		serverManifest[i]->code = 'N';
+	}
 	
 	if(clientManifest[0]->verNum != serverManifest[0]->verNum){
 		printf("The version numbers of your projects do not match.\n");
@@ -312,7 +223,7 @@ void commitProject(char* projectName){
 		exit(0);
 	}
 	
-	//compareCommitManifests(clientManifest, cEntries, serverManifest, sEntries);
+	compareCommitManifests(clientManifest, cEntries, serverManifest, sEntries);
 	
 	for(i = 0; i < cEntries; i++){
 		if(clientManifest[i]->code == 'E'){
@@ -321,24 +232,91 @@ void commitProject(char* projectName){
 		}
 	}
 	if(error){
-		outputError(clientManifest, cEntries);
+		printf("Error in project file versions, update and upgrade local files\n");
+		exit(0);
 	}
+	
+	for(i = 0; i < cEntries; i++){
+		if(clientManifest[i]->code == '-'){
+		error++;
+		}
+	}
+	for(i = 0; i < sEntries; i++){
+		if(serverManifest[i]->code == '-'){
+		error++;
+		}
+	}
+	
+	if(error == (cEntries + sEntries)){
+		printf("No files have modified, added, or deleted. No commit necessary\n");
+		exit(0);
+	}
+	
+	char* commitName = parseCommitName(projectName);
+	int contents = open(commitName, newFlag, mode);
+	
+	for(i = 0; i < cEntries; i++){
+		writeCommitEntry(clientManifest[i], contents);
+	}
+	for(i = 0; i < sEntries; i++){
+		writeCommitEntry(serverManifest[i], contents);
+	}
+	close(commitName);
+	
+	//TODO send the commit file to the server
+	//All other commit files for the project should be purged
+	
 }
 
-void pushFile(char * projectName){
+void pushProject(char * projectName){
 	int server = connect_server(IP,PORT);
 	write(server,"push", 5);
 	
-	// need to change the thing over here and also compress the file here 
+	char* commitName = parseCommitName(projectName);
+	if(access(commitName, F_OK) != 0){
+		printf("There is no commit file, commit first\n");
+		exit(0);
+	}
+	
 	write(server, strlen(projectName),sizeof(int));
-	write(server,projectName,strlen(projectName)+1);
+	write(server,projectName,strlen(projectName));
+	
 	// need to compress file here so that we can send that file 
+	
+	
 	send_file("WTFserver.h",server);
 }
 
+int send_file(char * path, int socket){
+	int send_file = open (path, O_RDONLY);
+	if (send_file<0){
+		return 0;
+	}
+	int length = lseek(send_file,0,SEEK_END);
+	lseek(send_file,0, SEEK_SET);
+	write(socket, &length ,sizeof(int));
+	char * buffer = malloc(length*sizeof(char));
+	int bytes_read = 0;
+	while (bytes_read<length){
+		bytes_read += read(send_file,buffer,1024);
+	}
 
+	printf("this is the buffer:\n%s\n",buffer);
+	int bytes_written=0;
+	while(bytes_written<length){
+		bytes_written+=write(socket,buffer,strlen(buffer));
+		printf("%d\n",bytes_written);
+	}
+}
 
-
+int check_if_there(char * projectName){
+	  DIR * project = opendir(projectName);
+	if (ENOENT == errno){
+		printf("The folder does not exist\n");
+		return -1;
+	}   
+	return 0;    
+}
 
 
 
