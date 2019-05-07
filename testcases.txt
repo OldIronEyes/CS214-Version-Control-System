@@ -1,0 +1,9 @@
+1) The first test case we have is adding a file to the folder that is on the client's side. The input would be any file and the output would be the file being added to the folder strictly on the client's machine.
+
+2)The second test case would just be a simple case to make sure that the configure works correctly. The input to the system would be the command line requiring a IP and a port number. The user would be able to input either a numerical IP address or a hostname, either way it should work to connect the client and server. The output would just be printing out the global variables that have been parsed from the .configure file.
+
+3)The third test case is testing the upgrade function. This would be when we have a file that is not on the client's side, but is on the server. When we call upgrade we expect that the server is going to send over the all the files including the ones that are not on the client's side. The outcome would be the all the files on the client side matching the ones that are on the server.
+
+4)We will be testing push by adding a specific file to the client's side and then pushing only that file to the server. The outcome would be that the file that we have pushed now exists on both the client and server. 
+
+5) We will also be testing checkout, this will be done by calling the checkout argument on a folder that does not exist on the server. This will fail since the folder has not been created yet.
