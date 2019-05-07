@@ -13,13 +13,16 @@
 #include <ctype.h>
 #include <netdb.h>
 #include <sys/types.h>
+#include <sys/socket.h>
 #include <netinet/in.h>
+#include <dirent.h>
 #include <errno.h>
 
 int MANIFEST_ENTRIES;
 
 char* IP;
 int PORT;
+
 
 static int newFlag = O_WRONLY | O_CREAT;
 static int readFlag = O_RDONLY;
@@ -87,35 +90,17 @@ void mainExtract(char* tarName);
 /////serverExtract assumes that the archive is already in the /<projectName>/ folder
 void serverExtract(char* projectName, char* tarPath);
 
+//Update functions
+char* parseUpdateName(char* projectName);
+void compareManifests(manEntry** client, int cEntries, manEntry** server, int sEntries);
+void writeUpdateEntry(manEntry* entry, int fileDescriptor);
+void outputError(manEntry** entryArray, int entries);
+manEntry* extractUpdate(char* rawText, int trailer);
+char** getFileNames (manEntry** updateArray, int uEntries);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// functions for the connection 
+int connect_server (char * Ip, int port);
+void tokenize();
+void configure ( char* IPAddress, char* port );
 
 #endif

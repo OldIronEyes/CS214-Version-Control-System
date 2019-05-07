@@ -1,4 +1,14 @@
-#include "WTFServer.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <ctype.h>
+#include "WTF.h"
+#include <dirent.h>
 
 void error(const char *msg)
 {
@@ -8,47 +18,16 @@ void error(const char *msg)
 
 void check_arg(char * buffer, int fd){
     // this is skelton for the main argu
-    // use a switch case much much better 
     
     if (strcmp(buffer,"push")==0){
-        printf("hello world\n");
-        int input_buffer;
-        read(fd,&input_buffer,sizeof(int));
-        printf("input buffer %d\n",input_buffer);
-        printf("this is the read in buffer: %s\n",buffer);
-        char * file_name = malloc(input_buffer*sizeof(char)+1);
-       
-        read(fd,file_name,input_buffer);
-        printf("%s\n",file_name);
-        return;
-        read(fd,&buffer,sizeof(int));
-        char * actual_file = malloc(input_buffer*sizeof(char)+1);
-        read(fd, actual_file, input_buffer);
-        char path [strlen(file_name)+2];
-        sprintf(path,"./%s",file_name);
-        int new_file = open(path,O_CREAT | O_RDWR, 0644);
-        if (new_file<0){
-            return ;
-        }
-        write(new_file,actual_file,strlen(actual_file));
-        close(new_file);
+        serverPush(fd);
     }
     else if (strcmp(buffer,"destroy")==0){
-       int input_buffer;
-       read(fd,&input_buffer,sizeof(int));
-       char* project_name = malloc(input_buffer*sizeof(char)+1);
-       read(fd,project_name,input_buffer);
-       // needs to give it a path over here for it to check.
-       int check_for_file = access(project_name/project_name.manifest, F_OK); 
-       if (check_for_file=0){
-           destroyProject(project_name);
-       }else {
-           printf("you are trying to destroy a project that does not exist\n");
-           return;
-       }
-       
-       destroyProject(project_name);
-       return;
+        serverDestroy(fd);
+    }
+    
+    else if (strcmp(buffer,"create")==0){
+        serverCreate(fd);         
     }
 
 }
@@ -60,6 +39,8 @@ void* func(void *vargp)
     printf("new connection\n");
     while (1)
     {
+
+
         if (read(*fd, buffer, 255) < 0)
         {
             perror("read");
