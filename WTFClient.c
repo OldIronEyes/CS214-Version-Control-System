@@ -37,6 +37,9 @@ int main (int argc, char ** argv){
 	connect_server(IP, PORT);
 	if (strcmp(argv[1],"create")==0){
 		createProject(argv[2]);
+		sleep(1);
+		shutdown(SERVER, SHUT_RDWR);
+		close(SERVER);
 		exit(0);
 	}
 	else if (strcmp(argv[1],"push")==0){

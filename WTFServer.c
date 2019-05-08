@@ -16,21 +16,24 @@ void error(const char *msg)
     exit(0);
 }
 
-void check_arg(char * buffer, int fd){
-    // this is skelton for the main argu
-    
-    if (strcmp(buffer,"push")==0){
-        serverPush(fd);
-    }
-    else if (strcmp(buffer,"destroy")==0){
+void check_arg(char* command, int fd){
+    else if (strcmp(command,"destroy")==0){
         serverDestroy(fd);
     }
-    
-    else if (strcmp(buffer,"create")==0){
+    else if (strcmp(command,"create")==0){
         serverCreate(fd);         
     }
-    else if (strcmp(buffer,"commit")==0){
+    else if (strcmp(command,"update")==0){
         serverCommit(fd);
+    }
+    else if (strcmp(command,"upgrade")==0){
+        serverCommit(fd);
+    }
+    else if (strcmp(command,"commit")==0){
+        serverCommit(fd);
+    }
+        if (strcmp(command,"push")==0){
+        serverPush(fd);
     }
 
 }
@@ -38,26 +41,17 @@ void check_arg(char * buffer, int fd){
 void* func(void *vargp)
 {
     int* fd = (int*)vargp;
-    char buffer[256];
-    printf("new connection\n");
+    int buffer;
+    char* command;
     while (1)
-    {
+    {	
+    	//Server 1
+		read(*fd, &buffer, sizeof(int));
+		command = malloc(buffer*sizeof(char));
+		read(*fd, command, buffer);
+        check_arg(command,*fd);
 
-
-        if (read(*fd, buffer, 255) < 0)
-        {
-            perror("read");
-            close(*fd);
-            return NULL;
-        }
-        //printf("%s\n going to the arguments yay\n",buffer);
-        check_arg(buffer,*fd);
-       
-        
-        printf("This is the end of the recieving\n");
         break;
-        if (strcmp(buffer, "done") == 0)
-            break;
     }
     close(*fd);
     return NULL;

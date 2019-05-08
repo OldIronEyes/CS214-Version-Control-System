@@ -1,17 +1,16 @@
 #include "WTF.h"
 
 void createProject(char* projectName){
-	int buffer;
-	int n;
+	
+	//WTFServer - 1
+	int buffer = 7;
+	write(SERVER, &buffer, sizeof(int));
 	write(SERVER,"create", 7);
 
+	//Server - 2
 	buffer = strlen(projectName)+1;
-	n = write(SERVER, &buffer,sizeof(int));
-	printf("n %d\n", n);
-	printf("er %d\n", errno);
-	n = write(SERVER,projectName,strlen(projectName));
-	printf("n %d\n", n);
-	printf("er %d\n", errno);
+	write(SERVER, &buffer,sizeof(int));
+	write(SERVER,projectName,strlen(projectName)+1);
 
 	char* manifestName = parseManifestName(projectName);
 	int contents = open(manifestName, newFlag, mode);
@@ -26,13 +25,15 @@ void destroyProject(char* projectName){
 	char* manifestName = parseManifestName(projectName);
 	remove(manifestName);
 	free(manifestName);
-
+	
+	int buffer = 8;
+	write(SERVER, &buffer, sizeof(int));
 	write(SERVER, "destroy", 8);
 
-	int buffer = strlen(projectName)+1;
+	
+	buffer = strlen(projectName)+1;
 	write(SERVER,&buffer,sizeof(int));
-	write(SERVER,projectName,strlen(projectName));
-
+	write(SERVER,projectName,strlen(projectName)+1);
 }
 
 void addFile(char* projectName, char* fileName){
@@ -94,19 +95,24 @@ void removeFile(char* projectName, char* fileName){
 	close(contents);
 }
 
-void checkoutProject(char* projectName){
-	//TODO: Send command, recieve entire project, decompress it
-}
-
 void updateProject(char* projectName){
-	write(SERVER, "update",6);
+	//Write Command
+	int buffer = 7;
+	write(SERVER, &buffer, sizeof(int));
+	write(SERVER, "update",7);
 	
-	int length = sizeof(int);
-	read(SERVER, &length, sizeof(int));
+	//Write Name
+	buffer = strlen(projectName)+1;
+	write(SERVER, &buffer, sizeof(int));
+	write(SERVER, projectName, strlen(projectName+1));
 	
-	char* serverManifestText = malloc((length+1)*sizeof(char));
-	memset(serverManifestText, 0x0, length+1);
-	read(SERVER,serverManifestText,length);
+	
+	//Read Server Manifest
+	read(SERVER, &buffer, sizeof(int));
+	char* serverManifestText = malloc((buffer+1)*sizeof(char));
+	read(SERVER,serverManifestText,buffer);
+	
+	//Save Server Manifest
 	int server_manifest = open("a2.manifest",newFlag,0644);
 	write(server_manifest,serverManifestText,strlen(serverManifestText));
 	close(server_manifest);
@@ -118,8 +124,8 @@ void updateProject(char* projectName){
 	manEntry** clientManifest = readManifest(manifestName);
 	int cEntries = MANIFEST_ENTRIES;
 	
-	//Pointer should be to .server's manifest text
 	manEntry** serverManifest = readManifest("a2.manifest");
+	remove("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
 	
 	compareUpdateManifests(clientManifest, cEntries, serverManifest, sEntries);
@@ -148,15 +154,7 @@ void updateProject(char* projectName){
 }
 
 void upgradeProject(char* projectName){
-	
 	char* updateName = parseUpdateName(projectName);
-
-	int buffer;
-	write(SERVER, "upgrade",8);
-	buffer = strlen(projectName)+1;
-	write(SERVER,&buffer,sizeof(int));
-	write(SERVER,projectName,strlen(projectName));
-
 	
 	if(access(updateName, F_OK) == -1){
 		printf("Update file does not exist, run Update <Project Name> first");
@@ -167,32 +165,34 @@ void upgradeProject(char* projectName){
 	stat(updateName, &third);
 	if(third.st_size == 0){
 		printf("Update file is blank, no Upgrade required\n");
-		
+		exit(0);
 	}
 	
-	manEntry** updateArray = (manEntry**)readUpdate(updateName);
-	int uEntries = MANIFEST_ENTRIES;
+	//Write 1
+	int buffer = 8;
+	write(SERVER, &buffer, sizeof(int));
+	write(SERVER, "upgrade", 8);
 	
-	char** fileNames = getFileNames(updateArray, uEntries);
+	//send project name
+	buffer = strlen(projectName)+1;
+	write(SERVER,&buffer,sizeof(int));
+	write(SERVER,projectName,strlen(projectName));	
 	
-	//TODO Request files from server
-	
-	// get the file name
-	int second;
-	read (SERVER,&second,sizeof(int));
-	char * file_name = malloc(second*sizeof(char));
-	read(SERVER,file_name,second);
+	// get tar file name
+	read (SERVER,&buffer,sizeof(int));
+	char * tarName = malloc(buffer*sizeof(char));
+	read(SERVER,tarName,buffer);
 
 	// get the file size
-	read(SERVER, &second, sizeof(int));
-	char * upgraded_file= malloc(second*sizeof(char));
-	read(SERVER, upgraded_file,second);
+	read(SERVER, &buffer, sizeof(int));
+	char * tarContents= malloc(buffer*sizeof(char));
+	read(SERVER, tarContents,buffer);
 
-	int new_file = open(file_name,newFlag);
-	write(new_file,upgraded_file,second);
-	close(new_file);
-
-	mainExtract(file_name);
+	int tarFile = open(tarName,newFlag,mode);
+	write(tarFile,tarContents,buffer);
+	close(tarFile);
+	remove(updateName);
+	mainExtract(tarName);
 }
 
 void commitProject(char* projectName){
@@ -214,19 +214,19 @@ void commitProject(char* projectName){
 		exit(0);
 	}
 	
+	//Write 1
+	int buffer = 7;
+	write(SERVER,&buffer, sizeof(char));
 	write(SERVER, "commit",7);
 
-	//Size of project name
-	int buffer = strlen(projectName)+1;
+	//Write 2
+	buffer = strlen(projectName)+1;
 	write(SERVER,&buffer,sizeof(int));
-	
-	//Project name
-	write(SERVER,projectName,strlen(projectName));
+	write(SERVER,projectName,strlen(projectName)+1);
 
-
+	//Read server manifest
 	read(SERVER, &buffer, sizeof(int));
 	char* manifestText = malloc(buffer*sizeof(char));
-
 	read(SERVER, manifestText, buffer);
 
 	int servermanifest = open("a2.manifest", newFlag, mode);
@@ -249,8 +249,8 @@ void commitProject(char* projectName){
 		}
 	}
 	
-	//Pointer should be to server's .manifest text
 	manEntry** serverManifest = readManifest("a2.manifest");
+	remove("a2.manifest");
 	int sEntries = MANIFEST_ENTRIES;
 	for(i = 0; i < sEntries; i++){
 		serverManifest[i]->code = 'N';
@@ -302,6 +302,7 @@ void commitProject(char* projectName){
 	}
 	close(contents);
 	
+	//Write 3
 	send_file(commitName);
 	
 }
@@ -312,10 +313,13 @@ void pushProject(char * projectName){
 		printf("There is no commit file, commit first\n");
 		exit(0);
 	}
-	
+	//Write 1
+	int buffer = 5;
+	write(SERVER, &buffer, sizeof(int));
 	write(SERVER,"push", 5);
 	
-	int buffer = strlen(projectName);
+	//Write 2
+	buffer = strlen(projectName);
 	write(SERVER, &buffer,sizeof(int));
 	write(SERVER,projectName,strlen(projectName));
 	
