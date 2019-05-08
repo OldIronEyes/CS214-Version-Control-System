@@ -22,7 +22,7 @@ int MANIFEST_ENTRIES;
 
 char* IP;
 int PORT;
-
+int SERVER;
 
 static int newFlag = O_WRONLY | O_CREAT;
 static int readFlag = O_RDONLY;
@@ -51,6 +51,7 @@ void updateProject(char* projectName);
 void upgradeProject(char* projectName);
 void commitProject(char* projectName);
 void pushProject(char* projectName);
+int sendFile(char* path);
 
 //Basic Manifest Functions
 char* parseManifestName(char* projectName);
@@ -89,9 +90,9 @@ void mainExtract(char* tarName);
 void serverExtract(char* projectName, char* tarPath);
 
 // functions for the connection 
-int connect_server (char * Ip, int port);
-void tokenize();
-void configure ( char* IPAddress, char* port );
+void connectServer(char* Ip, int port);
+void readConfigure();
+void configure(char* IPAddress, char* port);
 
 //Server functions 
 void serverCommit(int fd);
@@ -99,6 +100,5 @@ void serverPush(int fd);
 void serverDestroy(int fd);
 void serverCreate(int fd);
 void serverUpgrade(int fd);
-
 
 #endif

@@ -1,32 +1,40 @@
 #include "WTF.h"
 
 void serverCreate(int fd){
-    int buffer;
-    read(fd,&buffer,sizeof(int));
+	printf("creating project\n");
+    int buffer = 0;
     
-    char * project_name = malloc(buffer * sizeof(char)+1);
-    read(fd, project_name, buffer);
+    //Project Name
+    while(read(fd, &buffer, sizeof(int)) < sizeof(int));
     
-    if(mkdir(project_name, mode) != 0){
-        printf("Unable to create the project\n");
+    char* projectName = malloc(buffer*sizeof(char)+1);
+    
+	while(read(fd, projectName, buffer) < buffer);
+    
+    printf("%s\n", projectName);
+    if(mkdir(projectName, S_IRUSR | S_IWUSR | S_IXUSR) != 0){
+        printf("Unable to create the project, %d\n", errno);
     }
     return;
 }
 
 void serverDestroy(int fd){
-    int input_buffer;
-    read(fd,&input_buffer,sizeof(int));
-    char* project_name = malloc(input_buffer*sizeof(char)+1);
-    read(fd,project_name,input_buffer);
-    if(check_if_there(project_name)==0){
-        DIR* project = opendir(project_name);
+    int buffer;
+    
+    while(read(fd,&buffer,sizeof(int)) < sizeof(int));
+
+    char* projectName = malloc(buffer*sizeof(char)+1);
+    while(read(fd, projectName, buffer) < buffer);
+
+    if(check_if_there(projectName)==0){
+        DIR* project = opendir(projectName);
         struct dirent* file;
         
         readdir(project);
         readdir(project);
         
-        char* folderName = malloc(strlen(project_name)+2);
-		strncpy(folderName, project_name, strlen(project_name));
+        char* folderName = malloc(strlen(projectName)+2);
+		strncpy(folderName, projectName, strlen(projectName));
 		strncat(folderName, "/", 1);
 		
 		while(file = readdir(project)){
@@ -38,130 +46,151 @@ void serverDestroy(int fd){
 			printf("%s\n", file->d_name);
 		}
 		free(folderName);
-		rmdir(project_name);
+		rmdir(projectName);
     }
     return;
 }
 
 void serverPush(int fd){
-    int input_buffer;
+    int buffer;
 
     //Project Name
-    read(fd, &input_buffer, sizeof(int));
-    char * project_folder = malloc(input_buffer*sizeof(char)+1);
-    read(fd,project_folder,input_buffer);
+    while(read(fd, &buffer, sizeof(int)) < sizeof(int));
+    char* projectName = malloc(buffer*sizeof(char)+1);
+    while(read(fd,projectName,buffer) < buffer);
+
 
     //Filename
-    read(fd,&input_buffer,sizeof(int));
-    char * file_name = malloc(input_buffer*sizeof(char)+1);
-    read(fd,file_name,input_buffer);
+    while(read(fd,&buffer,sizeof(int)) < sizeof(int));
+    char* fileName = malloc(buffer*sizeof(char)+1);
+    while(read(fd,fileName,buffer) < buffer);
+
     
     //File
-    read(fd,&input_buffer,sizeof(int));
-    char * actual_file = malloc(input_buffer*sizeof(char)+1);
-    read(fd, actual_file, input_buffer);
+    while(read(fd,&buffer,sizeof(int)) < sizeof(int));
+    char* fileContents = malloc(buffer*sizeof(char)+1);
+    while(read(fd, fileContents, buffer) < buffer);
 
 
-    char path [strlen(file_name)+strlen(project_folder)+2];
-    memset(path,0x0,strlen(file_name)+strlen(project_folder)+2);
-    sprintf(path,"%s/%s",project_folder, file_name);
-    int new_file = open(path,O_CREAT | O_RDWR, 0644);
-    if (new_file<0){
+    char filePath[strlen(fileName) + strlen(projectName)+2];
+    memset(filePath,0x0,strlen(fileName)+strlen(projectName)+2);
+    
+    sprintf(filePath,"%s/%s",projectName, fileName);
+    int contents = open(filePath, newFlag, mode);
+    if (contents < 0){
         return;
     }
-    write(new_file,actual_file,strlen(actual_file));
-    close(new_file);
+    write(contents, fileContents, strlen(fileContents));
+    close(contents);
     return;
 }
 
 void serverCommit(int fd){
     int buffer;
 
-    //Size of project name
-    read (fd, &buffer, sizeof(int));
-    char * project_name = malloc(buffer*sizeof(char)+1);
+    //Project Name from Client
+    while(read (fd, &buffer, sizeof(int)) < sizeof(int));
+    char* projectName = malloc(buffer*sizeof(char)+1);
+    while(read (fd, projectName, buffer) < buffer);
 
-    //project name
-    read (fd, project_name,buffer);
-    char* commit_name = malloc(strlen(project_name)*2+9);
-    sprintf(commit_name, "%s/%s.commit", project_name, project_name);
-    
-    if (check_if_there(commit_name)!=0){
-        printf("The file is not on the server side\n");
-        return;
+    if (check_if_there(projectName) != 0){
+        printf("the file is not in the system\n");
+      return;
     }
+    
+    //Get Commit Path
+    char* commitPath = malloc(strlen(projectName)*2+9);
+    sprintf(commitPath, "%s/%s.commit", projectName, projectName);
+    remove(commitPath);
 
-    //Get manifest path
-    char* manifest_path = malloc(strlen(project_name)*2+11);
-    sprintf(manifest_path, "%s/%s.manifest", project_name, project_name);
+    //Get Manifest path
+    char* manifestPath = malloc(strlen(projectName)*2+11);
+    sprintf(manifestPath, "%s/%s.manifest", projectName, projectName);
 
-
-    int contents = open(manifest_path, readFlag);
+	//Read Manifest into memory
+    int contents = open(manifestPath, readFlag);
     struct stat file;
-    stat(manifest_path, &file);
+    stat(manifestPath, &file);
     char* manifestText = malloc(file.st_size*sizeof(char)+1);
-    read(manifestText, contents, file.st_size);
+    read(contents, manifestText, file.st_size);
+    close(contents);
 
-    write(fd, file.st_size, sizeof(int));
+	//Write Manifest to Client
+	buffer = file.st_size;
+    while(write(fd, &buffer, sizeof(int)) < sizeof(int));
+    while(write(fd, manifestText, file.st_size) < sizeof(int));
 
-    write(fd, manifestText, file.st_size);
+    free(manifestText);
+    
+    //Get New Commit from Clietnt
+    while(read(fd, &buffer, sizeof(int)) < sizeof(int));
+    char* commitText =  malloc(buffer*sizeof(char));
+    while(read(fd, commitText, buffer) < buffer);
 
 
-
-    read(fd,&buffer,sizeof(int));
-    char * actual_file =  malloc(buffer*sizeof(char));
-    read(fd, actual_file, buffer);
-
-
-    char* commit_path = malloc(strlen(project_name)*2+9);
-    sprintf(commit_path, "%s/%s.commit", project_name, project_name);
-
-    int commitName = open(commit_path,newFlag);
-    write(commitName,actual_file, buffer);
+	//Write Commit to file
+    int commitName = open(commitPath, newFlag, mode);
+    write(commitName, commitText, buffer);
     close(commitName);
     return;
 }
 
 void serverUpgrade(int fd){
     int buffer;
-    read(fd,&buffer,sizeof(int));
-    char * project_name = malloc(buffer * sizeof(char)+1);
-    read(fd, project_name, buffer);
-    if (check_if_there(project_name)!=0){
+    
+    //Get Project Name
+    while(read(fd, &buffer, sizeof(int)) < sizeof(int));
+    char* projectName = malloc(buffer * sizeof(char)+1);
+    while(read(fd, projectName, buffer) < buffer);
+
+    
+    if (check_if_there(projectName)!=0){
         printf("the file is not in the system\n");
         return;
     }
     
-    char * tar_path = serverCompress(project_name);
+    char* tarPath = serverCompress(projectName);
     
-    //Get tar name
-    char * tar_name = malloc (strlen(tar_path)*sizeof(char));
-    memset(tar_name,0x0,strlen(tar_path));
+    //Get Tar Name
+    char * tarName = malloc (strlen(tarPath)*sizeof(char)+1);
+    memset(tarName,0x0,strlen(tarPath)+1);
     int leader, trailer;
-
-    leader = strlen(tar_path);
+    leader = strlen(tarPath);
     trailer = leader;
-
-    while(tar_path[trailer] != '/'){
+    while(tarPath[trailer] != '/'){
         trailer--;
     }
+    strncpy(tarName,(char*)tarPath+trailer, (leader-trailer));
+    
+    //Read Tar File into Memory
+    struct stat tarStat;
+    stat(tarPath,&tarStat);
+    int contents = open(tarPath, readFlag);
+    char* tarText = malloc(tarStat.st_size*sizeof(char)+1);
+    read(contents, tarText, tarStat.st_size);
+    close(contents);
+    
+    //Send Tar Name
+    buffer = strlen(tarName)+1;
+    while(write(fd, &buffer,sizeof(int)) < sizeof(int));
+    while(write(fd, tarName, strlen(tarName)) < strlen(tarName));
 
-    strncpy(tar_name,(char*)tar_path+trailer, leader-trailer);
-    // sending the file name 
-    write(fd, strlen(tar_name),sizeof(int));
-    write(fd,tar_name,strlen(tar_name)+1);
+	
+    //Send Tar File 
+    buffer = tarStat.st_size;
+    while(write(fd, &buffer,sizeof(int)) < sizeof(int));
+    while(write(fd,tarText,tarStat.st_size) < tarStat.st_size);
 
-    struct stat second;
-    stat(tar_path,&second);
-    // sending the tar file 
-    write(fd, strlen(tar_path),sizeof(int));
-    write(fd,tar_path,second.st_size);
+    remove(tarPath);
+    free(projectName);
+    free(tarPath);
+    free(tarName);
+    free(tarText);
 }
 
 int check_if_there(char * projectName){
 	  DIR * project = opendir(projectName);
 	if (ENOENT == errno){
-		printf("The folder does not exist\n");
 		return -1;
 	}
 	return 0;
