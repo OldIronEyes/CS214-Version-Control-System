@@ -1,34 +1,85 @@
- 
-each test plan number correlates to the test case number.
+Asst3 - WTF
+Vijay Challa (VKC17), Dov Kassai (DV778)
 
-test plan 1) the input is the configure argument. The expected output is going to be the IP and the PORT that was put into the command line.
+These are the inputs and expected results for each test case outlined in testcases.txt. The full set of test cases can be executed with the command "./WTFTest".
 
-test plan 2) The input we have is just using the create function to create a project folder on the server side. The outcome we expect is that there is now a directory on the server's side with the project name that we inputted. 
-
-test plan 3)
-	a) The input we are giving it is a simple file. The outcome is that it is now in the client's project folder.
-	b) We are giving it another file that is already in the project folder. We are expecting this to fail since we would not be able to add a file that is already in the folder.
-
-test plan 4) 
-	a) The input we are giving is a file that is in the project folder on the client side. The outcome would be that after this is run we do not have this file anymore since it was removed. 
-	b)The input we give is that we are going to put in a file name that is not in the project and we are expecting it to fail since we cannot remove something that is not in the project.
-
-test plan 5) The input is a change in the folder and trying to then push it to the server. This will not work since there was no commit done before it. 
-
-test plan 6) The input is a commit without any changes to the client's files. This would result in a fail since we are not changing any files. 
-
-test plan 7) This will have a change in the client's project and it will then commit and then push to the server. This will then update the server's project. The output is that we are expecting the server's project to be the same as the one on the client's machine.
-
-test plan 8) We will be deleting everything from the client's project, and then trying to checkout the server's project. The output would be that the client now has the same project as what was on the server.
-
-test plan 9) We are trying to do an upgrade based on what is on the server's project. But since we deleted the update file on the client, the output is an expected failure.
-
-test plan 10) The input would be that we are going to remove a file from the client's side then update the server side. The output is going to be that the server now has everything except the removed file. 
-
-test plan 11) This is going to try and commit to the server, but it would fail since there is a .update file. This means that the client is behind the server in terms of commits. 
-
-test plan 12) The input would be that we are going to upgrade the client's project from the server's project. The output would be that the client and the server now have the same exact project. 
-
-test plan 13) The input would be the destroy call. The output would be that it would destroy the server's project, and on the client side it would destroy the .manifest file. 
-
-test plan 14) Since we just deleted the project from the server side, anything that we do to the server will fail since the project there does not exist. 
+1.	 Input: Create Test
+	Output: Failure, no .configure file
+	
+2.	 Input: Configure localhost 5555
+	Output: A .configure file written to the Client's directory
+	
+3.	 Input: Create Test
+	Output: A new folder in the Server's directory called Test containing a file
+			called Test.manifest. The Client's directory will also contain the same
+			file.
+	
+4.	 Input: Create Test
+	Output: Failure, the Project already exists in the Server's directory
+	
+5.	 Input: Add Test a.txt, Add Test b.txt, Add c.txt
+	Output: Additional entries in the Client's Test.manifest file for each .txt file
+	
+6.	 Input: Add Test a.txt
+	Output: Failure, the file is already being tracked in this Project
+	
+7.	 Input: Push Test
+	Output: Failure, there isn't a Test.commit file
+	
+8.	 Input: Commit Test
+	Output: Both the Client and Server directories will contain the same Test.commit file
+			which contains entries for Test.manifest, a.txt, and b.txt
+	
+9.	 Input: Push Test
+	Output: The Server will output all new files to the Test/ directory, update the 
+			Test.manifest file, and maintain an archive of push
+	
+10.	 Input: Commit Test
+	Output: Failure, the Client doesn't have any new or modified files in its .manifest
+	
+11.	 Input: Commit Test
+	Output: Both the Client and Server directories will contain the same Test.commit file
+			which only has entries for Test.manifest and a.txt
+	
+12.	 Input: Push Test
+	Output: The Server will output the modified a.txt to the Test/ directory, update the
+			Test.manifest file, and maintain an archive of the push
+	
+13.	 Input: Checkout Test
+	Output: The Server will send an archive of all files in the Test.manifest file, then
+			the Client will extract those files to its directory, and delete the archive.
+	
+14.	 Input: Upgrade Test
+	Output: Failure, there isn't a Test.update file
+	
+15.	 Input: Update Test
+	Output: Failure, there aren't any removed files
+	
+16.	 Input: Remove Test a.txt, Remove Test b.txt
+	Output: The Client's Test.manifest file will not contain the entry for a.txt
+	
+17.	 Input: Remove Test a.txt
+	Output: Failure, a.txt is no longer being tracked by the Client
+	
+18.	 Input: Update Test
+	Output: The Client will write a Test.update file to its directory, containing entries
+			for each file that was removed
+	
+19.	 Input: Upgrade Project
+	Output: The Server will send an archive of all the files in the Client's Test.update
+			file, then the Client will extract those to its directory, and delete the 
+			archive
+	
+20.	 Input: Update Test
+	Output: Failure, the Client will detect a Version Conflict between the files it's
+			tracking and those on the server, and output those files to the user.
+	
+21.	 Input: Currentversion Test
+	Output: The Client will display the Server's Test.manifest file
+	
+22.	 Input: Destroy Test
+	Output: The Client will delete its Test.manifest file, and the Server will delete
+			the Test/ directory and all files contained in it.
+	
+23.	 Input: Destroy Test
+	Output: Failure, the Project no longer exists on the Server

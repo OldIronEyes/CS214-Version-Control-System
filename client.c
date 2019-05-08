@@ -18,8 +18,6 @@ void createProject(char* projectName){
 }
 
 void destroyProject(char* projectName){
-
-	
 	char* manifestName = parseManifestName(projectName);
 	remove(manifestName);
 	free(manifestName);
@@ -354,33 +352,3 @@ int send_file(char * path, int socket){
 
 	}
 }
-
-int check_if_there(char * projectName){
-	  DIR * project = opendir(projectName);
-	if (ENOENT == errno){
-		printf("The folder does not exist\n");
-		return -1;
-	}
-	return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

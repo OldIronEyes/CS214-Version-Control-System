@@ -1,5 +1,48 @@
 #include "WTF.h"
 
+void serverCreate(int fd){
+    int buffer;
+    read(fd,&buffer,sizeof(int));
+    
+    char * project_name = malloc(buffer * sizeof(char)+1);
+    read(fd, project_name, buffer);
+    
+    if(mkdir(project_name, mode) != 0){
+        printf("Unable to create the project\n");
+    }
+    return;
+}
+
+void serverDestroy(int fd){
+    int input_buffer;
+    read(fd,&input_buffer,sizeof(int));
+    char* project_name = malloc(input_buffer*sizeof(char)+1);
+    read(fd,project_name,input_buffer);
+    if(check_if_there(project_name)==0){
+        DIR* project = opendir(project_name);
+        struct dirent* file;
+        
+        readdir(project);
+        readdir(project);
+        
+        char* folderName = malloc(strlen(project_name)+2);
+		strncpy(folderName, project_name, strlen(project_name));
+		strncat(folderName, "/", 1);
+		
+		while(file = readdir(project)){
+			char* filePath = malloc(strlen(folderName)+strlen(file->d_name)+1);
+			strncpy(filePath, folderName, strlen(folderName));
+			strncat(filePath, file->d_name, strlen(file->d_name));
+			remove(filePath);
+			free(filePath);
+			printf("%s\n", file->d_name);
+		}
+		free(folderName);
+		rmdir(project_name);
+    }
+    return;
+}
+
 void serverPush(int fd){
     int input_buffer;
 
@@ -29,31 +72,6 @@ void serverPush(int fd){
     write(new_file,actual_file,strlen(actual_file));
     close(new_file);
     return;
-}
-
-void serverDestroy(int fd){
-    int input_buffer;
-    read(fd,&input_buffer,sizeof(int));
-    char* project_name = malloc(input_buffer*sizeof(char)+1);
-    read(fd,project_name,input_buffer);
-    if(check_if_there(project_name)==0){
-        destroyProject(project_name);
-    }
-    return;
-}
-
-void serverCreate(int fd){
-     int buffer;
-    read(fd,&buffer,sizeof(int));
-    char * project_name = malloc(buffer * sizeof(char)+1);
-    read(fd, project_name, buffer);
-    DIR * project = opendir(project_name);
-    if (ENOENT != errno){
-        createProject(project_name);
-    }else {
-        printf("Unable to create the project\n");
-        return;
-    }
 }
 
 void serverCommit(int fd){
@@ -101,13 +119,6 @@ void serverCommit(int fd){
     int commitName = open(commit_path,newFlag);
     write(commitName,actual_file, buffer);
     close(commitName);
-
-
-
-    
-    
-
-
     return;
 }
 
@@ -145,7 +156,13 @@ void serverUpgrade(int fd){
     // sending the tar file 
     write(fd, strlen(tar_path),sizeof(int));
     write(fd,tar_path,second.st_size);
-    
+}
 
-
+int check_if_there(char * projectName){
+	  DIR * project = opendir(projectName);
+	if (ENOENT == errno){
+		printf("The folder does not exist\n");
+		return -1;
+	}
+	return 0;
 }

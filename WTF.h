@@ -28,7 +28,7 @@ static int newFlag = O_WRONLY | O_CREAT;
 static int readFlag = O_RDONLY;
 static int addFlag = O_RDWR | O_APPEND;
 static int remFlag = O_RDWR | O_TRUNC;
-static mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
+static mode_t mode = S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IROTH;
 
 typedef struct _manEntry {
 	int verNum;
