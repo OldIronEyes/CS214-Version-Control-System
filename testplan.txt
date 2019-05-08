@@ -1,5 +1,5 @@
 Asst3 - WTF
-Vijay Challa (VKC17), Dov Kassai (DV778)
+Vijay Challa (VKC17), Dov Kassai (DK778)
 
 These are the inputs and expected results for each test case outlined in testcases.txt. The full set of test cases can be executed with the command "./WTFTest".
 

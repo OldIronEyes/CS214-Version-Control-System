@@ -1,13 +1,12 @@
 #include "WTF.h"
 
 void serverCreate(int fd){
-    int buffer;
-    read(fd,&buffer,sizeof(int));
+    int input_buffer;
+    read(fd,&input_buffer,sizeof(int));
+    char* project_name = malloc(input_buffer*sizeof(char)+1);
+    read(fd,project_name,input_buffer);
     
-    char * project_name = malloc(buffer * sizeof(char)+1);
-    read(fd, project_name, buffer);
-    
-    if(mkdir(project_name, mode) != 0){
+    if(mkdir(project_name, S_IRUSR | S_IWUSR | S_IXUSR) != 0){
         printf("Unable to create the project\n");
     }
     return;
@@ -18,6 +17,7 @@ void serverDestroy(int fd){
     read(fd,&input_buffer,sizeof(int));
     char* project_name = malloc(input_buffer*sizeof(char)+1);
     read(fd,project_name,input_buffer);
+    printf("-%s-\n", project_name);
     if(check_if_there(project_name)==0){
         DIR* project = opendir(project_name);
         struct dirent* file;
@@ -100,9 +100,10 @@ void serverCommit(int fd){
     struct stat file;
     stat(manifest_path, &file);
     char* manifestText = malloc(file.st_size*sizeof(char)+1);
-    read(manifestText, contents, file.st_size);
+    read(contents, manifestText, file.st_size);
 
-    write(fd, file.st_size, sizeof(int));
+	buffer = file.st_size;
+    write(fd, &buffer, sizeof(int));
 
     write(fd, manifestText, file.st_size);
 
@@ -148,13 +149,16 @@ void serverUpgrade(int fd){
 
     strncpy(tar_name,(char*)tar_path+trailer, leader-trailer);
     // sending the file name 
-    write(fd, strlen(tar_name),sizeof(int));
-    write(fd,tar_name,strlen(tar_name)+1);
+    
+    buffer = strlen(tar_name);
+    write(fd, &buffer,sizeof(int));
+    write(fd,tar_name,strlen(tar_name));
 
     struct stat second;
     stat(tar_path,&second);
     // sending the tar file 
-    write(fd, strlen(tar_path),sizeof(int));
+    buffer = strlen(tar_path) +1;
+    write(fd, &buffer,sizeof(int));
     write(fd,tar_path,second.st_size);
 }
 

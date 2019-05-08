@@ -65,6 +65,10 @@ void* func(void *vargp)
 
 int main(int argc, char *argv[])
 {
+	if (argc<2){
+		printf("you must put in a port number\n");
+		return 0;
+	}
 	if (atoi(argv[1])<8000 || atoi(argv[1])>64000){
 		printf("PORT must be between 8k adn 64k\n");
 		return 0;
@@ -100,7 +104,7 @@ int main(int argc, char *argv[])
                            &clilen_addr_size);
         if (newsockfd < 0)
             error("ERROR on accept");
-        pthread_create(thread, NULL, func, (void*)(&newsockfd));
+        pthread_create(&thread, NULL, func, (void*)(&newsockfd));
         
     }
     

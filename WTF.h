@@ -23,6 +23,7 @@ int MANIFEST_ENTRIES;
 char* IP;
 int PORT;
 
+int SERVER;
 
 static int newFlag = O_WRONLY | O_CREAT;
 static int readFlag = O_RDONLY;
@@ -89,8 +90,8 @@ void mainExtract(char* tarName);
 void serverExtract(char* projectName, char* tarPath);
 
 // functions for the connection 
-int connect_server (char * Ip, int port);
-void tokenize();
+void connect_server (char * Ip, int port);
+void readConfigure();
 void configure ( char* IPAddress, char* port );
 
 //Server functions 

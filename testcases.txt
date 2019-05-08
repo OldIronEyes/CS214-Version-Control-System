@@ -1,5 +1,5 @@
 Asst3 - WTF
-Vijay Challa (VKC17), Dov Kassai (DV778)
+Vijay Challa (VKC17), Dov Kassai (DK778)
 
 1. Attempting to Create a Project without Configuring the Client
 2. Calling Configure to write a .configure file

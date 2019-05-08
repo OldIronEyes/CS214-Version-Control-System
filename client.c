@@ -1,12 +1,17 @@
 #include "WTF.h"
 
 void createProject(char* projectName){
-	//TODO check if the project already exists on the server
-	int server = connect_server(IP,PORT);
-	write(server,"create", 7);
+	int buffer;
+	int n;
+	write(SERVER,"create", 7);
 
-	write(server,strlen(projectName)+1,sizeof(int));
-	write(server,projectName,strlen(projectName)+1);
+	buffer = strlen(projectName)+1;
+	n = write(SERVER, &buffer,sizeof(int));
+	printf("n %d\n", n);
+	printf("er %d\n", errno);
+	n = write(SERVER,projectName,strlen(projectName));
+	printf("n %d\n", n);
+	printf("er %d\n", errno);
 
 	char* manifestName = parseManifestName(projectName);
 	int contents = open(manifestName, newFlag, mode);
@@ -22,13 +27,11 @@ void destroyProject(char* projectName){
 	remove(manifestName);
 	free(manifestName);
 
-	
-	int server = connect_server(IP,PORT);
-	write(server, "destroy", 8);
+	write(SERVER, "destroy", 8);
 
-	int length;
-	write(socket,&length,sizeof(int));
-	write(socket,projectName,strlen(projectName)+1);
+	int buffer = strlen(projectName)+1;
+	write(SERVER,&buffer,sizeof(int));
+	write(SERVER,projectName,strlen(projectName));
 
 }
 
@@ -96,14 +99,14 @@ void checkoutProject(char* projectName){
 }
 
 void updateProject(char* projectName){
-	int server = connect_server(IP,PORT);
-	write(server, "update",6);
+	write(SERVER, "update",6);
 	
-	int length;
-	read(server, &length, sizeof(int));
+	int length = sizeof(int);
+	read(SERVER, &length, sizeof(int));
+	
 	char* serverManifestText = malloc((length+1)*sizeof(char));
 	memset(serverManifestText, 0x0, length+1);
-	read(server,serverManifestText,length);
+	read(SERVER,serverManifestText,length);
 	int server_manifest = open("a2.manifest",newFlag,0644);
 	write(server_manifest,serverManifestText,strlen(serverManifestText));
 	close(server_manifest);
@@ -145,15 +148,14 @@ void updateProject(char* projectName){
 }
 
 void upgradeProject(char* projectName){
-
 	
 	char* updateName = parseUpdateName(projectName);
 
-	int server = connect_server(IP,PORT);
 	int buffer;
-	write(server, "upgrade",8);
-	write(server,strlen(projectName),sizeof(int));
-	write(server,projectName,strlen(projectName)+1);
+	write(SERVER, "upgrade",8);
+	buffer = strlen(projectName)+1;
+	write(SERVER,&buffer,sizeof(int));
+	write(SERVER,projectName,strlen(projectName));
 
 	
 	if(access(updateName, F_OK) == -1){
@@ -162,36 +164,35 @@ void upgradeProject(char* projectName){
 	}
 	
 	struct stat third;
-	stat(updateName, &buffer);
+	stat(updateName, &third);
 	if(third.st_size == 0){
 		printf("Update file is blank, no Upgrade required\n");
 		
 	}
 	
-	manEntry** updateArray = readUpdate(updateName);
+	manEntry** updateArray = (manEntry**)readUpdate(updateName);
 	int uEntries = MANIFEST_ENTRIES;
 	
 	char** fileNames = getFileNames(updateArray, uEntries);
 	
 	//TODO Request files from server
-		// get the file name 
+	
+	// get the file name
 	int second;
-	read (server,&second,sizeof(int));
+	read (SERVER,&second,sizeof(int));
 	char * file_name = malloc(second*sizeof(char));
-	read(server,file_name,second);
+	read(SERVER,file_name,second);
 
 	// get the file size
-	read(server, &second, sizeof(int));
+	read(SERVER, &second, sizeof(int));
 	char * upgraded_file= malloc(second*sizeof(char));
-	read(server, upgraded_file,second);
+	read(SERVER, upgraded_file,second);
 
 	int new_file = open(file_name,newFlag);
 	write(new_file,upgraded_file,second);
 	close(new_file);
 
 	mainExtract(file_name);
-	
-	//TODO Write files to the paths in updateArray[i]->name
 }
 
 void commitProject(char* projectName){
@@ -210,24 +211,23 @@ void commitProject(char* projectName){
 	
 	if(!noUpdate){
 		printf("Your project is behind the repository. Update and Upgrade to sync up before attempting to commit again\n");
+		exit(0);
 	}
 	
-	
-	int server = connect_server(IP,PORT);
-	write(server, "commit",7);
-	int buffer;
+	write(SERVER, "commit",7);
 
 	//Size of project name
-	write(server,strlen(projectName)+1,sizeof(int));
+	int buffer = strlen(projectName)+1;
+	write(SERVER,&buffer,sizeof(int));
 	
 	//Project name
-	write(server,projectName,strlen(projectName));
+	write(SERVER,projectName,strlen(projectName));
 
 
-	read(server, &buffer, sizeof(int));
+	read(SERVER, &buffer, sizeof(int));
 	char* manifestText = malloc(buffer*sizeof(char));
 
-	read(server, manifestText, buffer);
+	read(SERVER, manifestText, buffer);
 
 	int servermanifest = open("a2.manifest", newFlag, mode);
 	write(servermanifest, manifestText, strlen(manifestText));
@@ -242,7 +242,7 @@ void commitProject(char* projectName){
 	char* liveHash;
 	
 	for(i = 0; i < cEntries; i++){
-		liveHash = genLiveHash(clientManifest[i]->name);
+		liveHash = (char*)genLiveHash(clientManifest[i]->name);
 		if(strcmp(liveHash, clientManifest[i]->hash) != 0){
 			clientManifest[i]->verNum++;
 			free(liveHash);
@@ -300,9 +300,9 @@ void commitProject(char* projectName){
 	for(i = 0; i < sEntries; i++){
 		writeCommitEntry(serverManifest[i], contents);
 	}
-	close(commitName);
+	close(contents);
 	
-	send_file(commitName, server);
+	send_file(commitName);
 	
 }
 
@@ -313,42 +313,41 @@ void pushProject(char * projectName){
 		exit(0);
 	}
 	
-	int server = connect_server(IP,PORT);
-	write(server,"push", 5);
+	write(SERVER,"push", 5);
 	
-	write(server, strlen(projectName),sizeof(int));
-	write(server,projectName,strlen(projectName));
+	int buffer = strlen(projectName);
+	write(SERVER, &buffer,sizeof(int));
+	write(SERVER,projectName,strlen(projectName));
 	
 	manEntry** commitArray = readCommit(commitName);
 	int cEntries = MANIFEST_ENTRIES;
 	
 	char* tarName = mainCompress(projectName, commitArray, cEntries);
 	
-	send_file(tarName,server);
+	send_file(tarName);
 	
 	remove(commitName);
 	remove(tarName);
 	free(tarName);
 }
 
-int send_file(char * path, int socket){
+int send_file(char * path){
 	int send_file = open (path, O_RDONLY);
 	if (send_file<0){
 		return 0;
 	}
 	int length = lseek(send_file,0,SEEK_END);
 	lseek(send_file,0, SEEK_SET);
-	write(socket, &length ,sizeof(int));
+	write(SERVER, &length ,sizeof(int));
 	char * buffer = malloc(length*sizeof(char));
 	int bytes_read = 0;
 	while (bytes_read<length){
 		bytes_read += read(send_file,buffer,1024);
 	}
 
-	printf("this is the buffer:\n%s\n",buffer);
 	int bytes_written=0;
 	while(bytes_written<length){
-		bytes_written+=write(socket,buffer,strlen(buffer));
+		bytes_written+=write(SERVER,buffer,strlen(buffer));
 
 	}
 }

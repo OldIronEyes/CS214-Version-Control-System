@@ -6,7 +6,7 @@ void error(const char *msg)
     exit(0);
 }
 
-int connect_server (char * Ip, int port){
+void connect_server (char * Ip, int port){
 	int sockfd, portno, n, status, message_size, sent_size, total_size;
     struct sockaddr_in serv_addr;
     struct hostent *server;
@@ -36,7 +36,7 @@ int connect_server (char * Ip, int port){
 	
 	printf("the connection is good\n");
 
-	return sockfd;
+	SERVER = sockfd;
 }
 
 void configure ( char* IPAddress, char* port ){
@@ -57,7 +57,7 @@ void configure ( char* IPAddress, char* port ){
 
 }
 
-void tokenize(){
+void readConfigure(){
 
 	// tokenizes it so that it can get the name and the port 
 	int file = open(".configure" ,O_RDONLY, 0644);
